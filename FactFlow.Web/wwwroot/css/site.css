@@ -228,6 +228,29 @@ tbody tr:last-child td { border-bottom: 0; }
 .form-note strong { color: white; font-weight: 500; }
 .form-note code { color: #bcb3f5; }
 
+.card-count { color: rgba(255,255,255,.48); font-size: 10px; }
+.facts-table { min-width: 840px; table-layout: fixed; }
+.facts-table th:first-child, .facts-table td:first-child { width: 52px; }
+.facts-table th:nth-child(2), .facts-table td:nth-child(2) { width: auto; }
+.facts-table th:nth-child(3), .facts-table td:nth-child(3) { width: 70px; }
+.facts-table th:nth-child(4), .facts-table td:nth-child(4) { width: 95px; }
+.facts-table th:nth-child(5), .facts-table td:nth-child(5) { width: 70px; }
+.facts-table th:nth-child(6), .facts-table td:nth-child(6) { width: 120px; }
+.facts-table th:last-child, .facts-table td:last-child { width: 110px; }
+.source-badge { display: inline-block; padding: 4px 7px; border-radius: 3px; background: rgba(157,143,239,.14); color: #c7bdf8; font-size: 10px; }
+.source-api { background: rgba(88,172,117,.15); color: #8bd7a5; }
+.source-manual { background: rgba(92,145,210,.16); color: #9ec7f5; }
+.source-journalimport { color: #beb6df; }
+.row-actions { display: flex; align-items: center; gap: 10px; }
+.row-actions a, .row-actions button { padding: 0; border: 0; background: none; color: #bdb3f4; cursor: pointer; font-size: 11px; }
+.row-actions button { color: #f0939a; }
+.row-actions a:hover, .row-actions button:hover { text-decoration: underline; }
+.record-metadata { display: flex; gap: 12px; margin-bottom: 20px; }
+.record-metadata > span { min-width: 130px; padding: 11px 13px; border: 1px solid rgba(255,255,255,.14); border-radius: 4px; background: rgba(22,24,26,.45); }
+.record-metadata small, .record-metadata strong { display: block; }
+.record-metadata small { margin-bottom: 4px; color: rgba(255,255,255,.45); font-size: 9px; }
+.record-metadata strong { font-weight: 500; }
+
 .history-summary .value-alert { color: #ff9ba3; }
 .technical-history { min-height: 300px; }
 .technical-table { min-width: 820px; table-layout: fixed; }

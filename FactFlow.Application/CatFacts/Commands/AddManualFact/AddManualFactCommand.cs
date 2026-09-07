@@ -3,4 +3,4 @@ using FactFlow.Domain.CatFacts;
 
 namespace FactFlow.Application.CatFacts.Commands.AddManualFact;
 
-public sealed record AddManualFactCommand(string Fact) : ICommand<CatFact>;
+public sealed record AddManualFactCommand(string Fact) : ICommand<FactRecord>;

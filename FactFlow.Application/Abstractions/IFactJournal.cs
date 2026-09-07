@@ -6,7 +6,7 @@ public interface IFactJournal
 {
     string FilePath { get; }
 
-    Task AppendAsync(CatFact fact, CancellationToken cancellationToken = default);
+    Task<int> AppendAsync(CatFact fact, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<CatFact>> ReadAllAsync(CancellationToken cancellationToken = default);
 

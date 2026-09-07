@@ -29,6 +29,9 @@
                     <a class="command-item @(activeTab.Kind == "Dashboard" ? "active" : null)" asp-controller="Home" asp-action="Index">
                         <span class="command-icon">⌂</span><span>Dashboard</span>
                     </a>
+                    <a class="command-item @(activeTab.Kind is "Facts" or "EditFact" ? "active" : null)" asp-controller="Facts" asp-action="Index">
+                        <span class="command-icon">▦</span><span>All facts</span>
+                    </a>
                     <a class="command-item @(activeTab.Kind == "NewFact" ? "active" : null)" asp-controller="Facts" asp-action="Create">
                         <span class="command-icon">＋</span><span>New fact</span>
                     </a>
@@ -60,6 +63,7 @@
                             <a class="tab-label"
                                asp-controller="@workspace.Controller"
                                asp-action="@workspace.Action"
+                               asp-route-id="@workspace.EntityId"
                                asp-route-tabId="@(workspace.Id == "dashboard" ? null : workspace.Id)">
                                 <span></span>@workspace.Title
                             </a>

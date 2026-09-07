@@ -1,6 +1,7 @@
 using FactFlow.Application.Abstractions;
 using FactFlow.Application.CatFacts.Commands.FetchCatFact;
 using FactFlow.Domain.CatFacts;
+using FactFlow.Tests.TestDoubles;
 
 namespace FactFlow.Tests.Application;
 
@@ -12,13 +13,16 @@ public sealed class FetchCatFactCommandHandlerTests
         var expected = new CatFact("Cats sleep for much of the day.", 32);
         var client = new StubCatFactClient(expected);
         var journal = new RecordingFactJournal();
-        var handler = new FetchCatFactCommandHandler(client, journal);
+        var repository = new InMemoryFactRepository();
+        var handler = new FetchCatFactCommandHandler(client, journal, repository);
 
         var result = await handler.Handle(new FetchCatFactCommand(), CancellationToken.None);
 
         Assert.Equal(expected, result.Fact);
         Assert.Equal("test-journal.txt", result.JournalPath);
         Assert.Equal([expected], journal.AppendedFacts);
+        Assert.Equal(FactSource.Api, Assert.Single(repository.Facts).Source);
+        Assert.Equal(1, repository.SaveCount);
     }
 
     [Fact]
@@ -26,7 +30,8 @@ public sealed class FetchCatFactCommandHandlerTests
     {
         var client = new StubCatFactClient(new CatFact(string.Empty, 0));
         var journal = new RecordingFactJournal();
-        var handler = new FetchCatFactCommandHandler(client, journal);
+        var repository = new InMemoryFactRepository();
+        var handler = new FetchCatFactCommandHandler(client, journal, repository);
 
         await Assert.ThrowsAsync<InvalidDataException>(
             () => handler.Handle(new FetchCatFactCommand(), CancellationToken.None));
@@ -45,10 +50,10 @@ public sealed class FetchCatFactCommandHandlerTests
         public List<CatFact> AppendedFacts { get; } = [];
         public string FilePath => "test-journal.txt";
 
-        public Task AppendAsync(CatFact fact, CancellationToken cancellationToken = default)
+        public Task<int> AppendAsync(CatFact fact, CancellationToken cancellationToken = default)
         {
             AppendedFacts.Add(fact);
-            return Task.CompletedTask;
+            return Task.FromResult(AppendedFacts.Count);
         }
 
         public Task<IReadOnlyList<CatFact>> ReadAllAsync(CancellationToken cancellationToken = default) =>

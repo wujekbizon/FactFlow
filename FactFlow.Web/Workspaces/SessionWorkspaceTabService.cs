@@ -9,7 +9,9 @@ public sealed class SessionWorkspaceTabService(IHttpContextAccessor httpContextA
     private const string ActiveTabSessionKey = "FactFlow.ActiveWorkspace";
     private const string DashboardId = "dashboard";
     private const string NewFactKind = "NewFact";
+    private const string FactsKind = "Facts";
     private const string HistoryKind = "History";
+    private const string EditFactKind = "EditFact";
     private static readonly WorkspaceTab Dashboard = new(
         DashboardId, "Dashboard", "Dashboard", "Home", "Index", false);
 
@@ -25,6 +27,21 @@ public sealed class SessionWorkspaceTabService(IHttpContextAccessor httpContextA
         EnsureDashboard();
         SetActive(DashboardId);
         return Dashboard;
+    }
+
+    public WorkspaceTab OpenFacts(string? tabId = null)
+    {
+        var tabs = ReadTabs();
+        var existing = tabs.FirstOrDefault(tab => tab.Kind == FactsKind);
+        if (existing is null)
+        {
+            existing = new WorkspaceTab("facts", FactsKind, "All facts", "Facts", "Index", true);
+            tabs.Add(existing);
+            SaveTabs(tabs);
+        }
+
+        SetActive(existing.Id);
+        return existing;
     }
 
     public WorkspaceTab OpenNewFact(string? tabId = null)
@@ -69,6 +86,30 @@ public sealed class SessionWorkspaceTabService(IHttpContextAccessor httpContextA
         if (existing is null)
         {
             existing = new WorkspaceTab("history", HistoryKind, "Response history", "Facts", "History", true);
+            tabs.Add(existing);
+            SaveTabs(tabs);
+        }
+
+        SetActive(existing.Id);
+        return existing;
+    }
+
+    public WorkspaceTab OpenEditFact(int factId, string? tabId = null)
+    {
+        var tabs = ReadTabs();
+        var existing = tabs.FirstOrDefault(tab =>
+            tab.Kind == EditFactKind && tab.EntityId == factId);
+
+        if (existing is null)
+        {
+            existing = new WorkspaceTab(
+                $"edit-{factId}",
+                EditFactKind,
+                $"Edit fact #{factId}",
+                "Facts",
+                "Edit",
+                true,
+                factId);
             tabs.Add(existing);
             SaveTabs(tabs);
         }

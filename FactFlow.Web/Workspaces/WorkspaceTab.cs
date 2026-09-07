@@ -6,4 +6,5 @@ public sealed record WorkspaceTab(
     string Title,
     string Controller,
     string Action,
-    bool IsClosable);
+    bool IsClosable,
+    int? EntityId = null);

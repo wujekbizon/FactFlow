@@ -59,12 +59,12 @@
 
 <section class="medical-card history-card" id="history">
     <header class="card-header history-header">
-        <h2>Saved responses</h2>
+        <h2>Active database records</h2>
         <a class="secondary-button @(Model.TotalRequests == 0 ? "disabled" : null)"
            asp-controller="Facts" asp-action="DownloadJournal"
            aria-disabled="@(Model.TotalRequests == 0 ? "true" : "false")">Download TXT</a>
     </header>
-    <div class="journal-location"><span>File:</span><code>@Model.JournalPath</code></div>
+    <div class="journal-location"><span>Immutable TXT journal:</span><code>@Model.JournalPath</code></div>
 
     @if (Model.RecentFacts.Count == 0)
     {

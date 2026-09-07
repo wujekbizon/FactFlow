@@ -1,0 +1,58 @@
+@model IReadOnlyList<FactListItem>
+@{
+    ViewData["Title"] = "All facts";
+}
+
+<div class="page-title">
+    <div>
+        <h1>All facts</h1>
+        <p>Manage the mutable CRM records stored in SQL Server.</p>
+    </div>
+    <a class="secondary-button" asp-controller="Facts" asp-action="Create">New fact</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="message success" role="status"><span>✓</span>@successMessage</div>
+}
+
+<section class="medical-card facts-card">
+    <header class="card-header"><h2>Fact records</h2><span class="card-count">@Model.Count records</span></header>
+    @if (Model.Count == 0)
+    {
+        <div class="empty-table">No database records available.</div>
+    }
+    else
+    {
+        <div class="table-scroll">
+            <table class="facts-table">
+                <thead><tr><th>ID</th><th>Fact</th><th>Length</th><th>Source</th><th>Journal</th><th>Updated</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var fact in Model)
+                {
+                    <tr>
+                        <td>@fact.Id</td>
+                        <td>@fact.Content</td>
+                        <td>@fact.Length</td>
+                        <td><span class="source-badge source-@fact.Source.ToLowerInvariant()">@fact.Source</span></td>
+                        <td>#@fact.JournalSequence</td>
+                        <td>@fact.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="row-actions">
+                            <a asp-controller="Facts" asp-action="Edit" asp-route-id="@fact.Id">Edit</a>
+                            <form asp-controller="Facts" asp-action="Delete" asp-route-id="@fact.Id" method="post"
+                                  onsubmit="return confirm('Remove fact #@fact.Id from active records? The TXT journal will remain unchanged.');">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="form-note">
+    <strong>Data policy</strong>
+    <span>Editing or deleting a CRM record never rewrites the immutable assignment journal.</span>
+</section>

@@ -15,6 +15,6 @@ public sealed class WorkspaceController(IWorkspaceTabService workspaceTabs) : Co
         return RedirectToAction(
             next.Action,
             next.Controller,
-            next.Id == "dashboard" ? null : new { tabId = next.Id });
+            next.Id == "dashboard" ? null : new { id = next.EntityId, tabId = next.Id });
     }
 }

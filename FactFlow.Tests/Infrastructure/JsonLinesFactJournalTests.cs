@@ -19,13 +19,15 @@ public sealed class JsonLinesFactJournalTests : IDisposable
     {
         var journal = CreateJournal();
 
-        await journal.AppendAsync(new CatFact("First", 5));
-        await journal.AppendAsync(new CatFact("Second", 6));
+        var firstSequence = await journal.AppendAsync(new CatFact("First", 5));
+        var secondSequence = await journal.AppendAsync(new CatFact("Second", 6));
 
         var lines = await File.ReadAllLinesAsync(journal.FilePath);
         Assert.Equal(2, lines.Length);
         Assert.Equal("{\"fact\":\"First\",\"length\":5}", lines[0]);
         Assert.Equal("{\"fact\":\"Second\",\"length\":6}", lines[1]);
+        Assert.Equal(1, firstSequence);
+        Assert.Equal(2, secondSequence);
     }
 
     [Fact]

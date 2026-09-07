@@ -4,10 +4,10 @@ using FactFlow.Domain.CatFacts;
 
 namespace FactFlow.Application.CatFacts.Commands.AddManualFact;
 
-public sealed class AddManualFactCommandHandler(IFactJournal factJournal)
-    : ICommandHandler<AddManualFactCommand, CatFact>
+public sealed class AddManualFactCommandHandler(IFactJournal factJournal, IFactRepository factRepository)
+    : ICommandHandler<AddManualFactCommand, FactRecord>
 {
-    public async Task<CatFact> Handle(
+    public async Task<FactRecord> Handle(
         AddManualFactCommand command,
         CancellationToken cancellationToken)
     {
@@ -18,7 +18,10 @@ public sealed class AddManualFactCommandHandler(IFactJournal factJournal)
         }
 
         var fact = new CatFact(content, content.Length);
-        await factJournal.AppendAsync(fact, cancellationToken);
-        return fact;
+        var sequence = await factJournal.AppendAsync(fact, cancellationToken);
+        var record = FactRecord.Create(fact, FactSource.Manual, sequence, DateTimeOffset.UtcNow);
+        await factRepository.AddAsync(record, cancellationToken);
+        await factRepository.SaveChangesAsync(cancellationToken);
+        return record;
     }
 }

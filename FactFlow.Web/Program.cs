@@ -1,10 +1,15 @@
 using FactFlow.Application.CatFacts.Commands.FetchCatFact;
 using FactFlow.Application.CatFacts.Commands.AddManualFact;
+using FactFlow.Application.CatFacts.Commands.DeleteFact;
+using FactFlow.Application.CatFacts.Commands.UpdateFact;
+using FactFlow.Application.CatFacts.Queries.GetFactById;
+using FactFlow.Application.CatFacts.Queries.GetFacts;
 using FactFlow.Application.CatFacts.Queries.GetDashboard;
 using FactFlow.Application.CatFacts.Queries.GetFactHistory;
 using FactFlow.Application.CatFacts.Queries.GetFactJournal;
 using FactFlow.Application.Common.Messaging;
 using FactFlow.Infrastructure;
+using FactFlow.Infrastructure.Data;
 using FactFlow.Web.Authentication;
 using FactFlow.Web.Workspaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -29,8 +34,12 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keyPath))
     .SetApplicationName("FactFlow");
 builder.Services.AddTransient<ICommandHandler<FetchCatFactCommand, FetchCatFactResult>, FetchCatFactCommandHandler>();
-builder.Services.AddTransient<ICommandHandler<AddManualFactCommand, FactFlow.Domain.CatFacts.CatFact>, AddManualFactCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<AddManualFactCommand, FactFlow.Domain.CatFacts.FactRecord>, AddManualFactCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<UpdateFactCommand, bool>, UpdateFactCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<DeleteFactCommand, bool>, DeleteFactCommandHandler>();
 builder.Services.AddTransient<IQueryHandler<GetDashboardQuery, DashboardSnapshot>, GetDashboardQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetFactsQuery, IReadOnlyList<FactListItem>>, GetFactsQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetFactByIdQuery, FactDetails?>, GetFactByIdQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetFactHistoryQuery, FactHistorySnapshot>, GetFactHistoryQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetFactJournalQuery, FactJournalFile?>, GetFactJournalQueryHandler>();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -82,6 +91,11 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+if (app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
+{
+    await app.Services.InitializeDatabaseAsync();
+}
 
 app.Run();
 

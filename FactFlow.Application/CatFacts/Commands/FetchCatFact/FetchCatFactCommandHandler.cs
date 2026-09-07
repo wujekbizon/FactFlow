@@ -1,12 +1,14 @@
 using System.Diagnostics;
 using FactFlow.Application.Abstractions;
 using FactFlow.Application.Common.Messaging;
+using FactFlow.Domain.CatFacts;
 
 namespace FactFlow.Application.CatFacts.Commands.FetchCatFact;
 
 public sealed class FetchCatFactCommandHandler(
     ICatFactClient catFactClient,
-    IFactJournal factJournal)
+    IFactJournal factJournal,
+    IFactRepository factRepository)
     : ICommandHandler<FetchCatFactCommand, FetchCatFactResult>
 {
     public async Task<FetchCatFactResult> Handle(
@@ -21,9 +23,12 @@ public sealed class FetchCatFactCommandHandler(
             throw new InvalidDataException("The Cat Fact API returned an invalid response.");
         }
 
-        await factJournal.AppendAsync(fact, cancellationToken);
+        var sequence = await factJournal.AppendAsync(fact, cancellationToken);
+        var record = FactRecord.Create(fact, FactSource.Api, sequence, DateTimeOffset.UtcNow);
+        await factRepository.AddAsync(record, cancellationToken);
+        await factRepository.SaveChangesAsync(cancellationToken);
         stopwatch.Stop();
 
-        return new FetchCatFactResult(fact, stopwatch.ElapsedMilliseconds, factJournal.FilePath);
+        return new FetchCatFactResult(record.Id, fact, stopwatch.ElapsedMilliseconds, factJournal.FilePath);
     }
 }

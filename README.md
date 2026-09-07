@@ -2,7 +2,7 @@
 
 FactFlow is an ASP.NET Core MVC application that retrieves data from the [Cat Fact API](https://catfact.ninja/fact) and appends every successful response to a local text file.
 
-The required assignment is implemented as a complete vertical slice with dependency injection, asynchronous I/O, explicit CQRS handlers, authentication, automated tests and a custom dashboard.
+The required assignment is implemented as a complete vertical slice with dependency injection, asynchronous I/O, explicit CQRS handlers, SQL Server persistence, authentication, automated tests and a custom dashboard.
 
 ## Assignment coverage
 
@@ -32,6 +32,9 @@ Example output:
 - Use multiple persistent workspace tabs modelled after a desktop application.
 - Preserve unsaved manual-entry drafts while switching tabs.
 - Authenticate through an ASP.NET Core cookie.
+- Manage SQL-backed facts through create, read, update and soft-delete operations.
+- Preserve the TXT file as immutable intake evidence when SQL records are edited or deleted.
+- Recover missing SQL records automatically from the journal during development startup.
 - Check application availability at `/health`.
 
 ## Quick start
@@ -60,6 +63,8 @@ Password: FactFlow2026!
 
 These credentials are limited to `appsettings.Development.json`. Deployed environments must provide their own values through configuration or environment variables.
 
+The development profile uses SQL Server LocalDB. Visual Studio normally installs it automatically. On first startup, EF Core creates `FactFlowDb`, applies migrations and imports existing TXT lines.
+
 ## Verify the core requirement
 
 1. Log in.
@@ -83,7 +88,7 @@ FactFlow.Application
           /   \
          v     v
 FactFlow.Domain        FactFlow.Infrastructure
-    CatFact model          typed HTTP client + JSONL journal
+    fact entities          HTTP + JSONL + EF Core SQL Server
 ```
 
 Request flow:
@@ -96,17 +101,21 @@ POST /Facts/Fetch
     -> response validation
     -> IFactJournal.AppendAsync
     -> App_Data/catfacts.txt
+    -> IFactRepository.AddAsync
+    -> SQL Server Facts table
 ```
 
-The dashboard and history use query handlers. Fetching and manual creation use command handlers. The web layer does not implement HTTP or file persistence directly.
+The dashboard and CRM list read from SQL Server. Technical history reads the immutable journal. Fetching, manual creation, editing and soft deletion use command handlers. The web layer does not implement HTTP, file or database persistence directly.
+
+The journal is written before SQL. A startup synchronizer imports any journal sequence missing from the database. Soft-deleted records retain their journal sequence as a tombstone, preventing accidental re-import.
 
 ## Solution structure
 
 | Project | Responsibility |
 |---|---|
-| `FactFlow.Domain` | Core Cat Fact model |
-| `FactFlow.Application` | Use cases, CQRS contracts and handlers |
-| `FactFlow.Infrastructure` | External API and filesystem implementations |
+| `FactFlow.Domain` | Cat Fact and mutable CRM record models |
+| `FactFlow.Application` | Use cases, CQRS contracts, CRUD and handlers |
+| `FactFlow.Infrastructure` | External API, filesystem, EF Core and SQL Server |
 | `FactFlow.Web` | MVC controllers, Razor UI, authentication and session workspaces |
 | `FactFlow.Tests` | Application and infrastructure tests |
 
@@ -127,6 +136,31 @@ Current suite covers:
 - Manual-fact normalization and calculated length.
 - Dashboard statistics.
 - History integrity, duplicate detection, hashing and raw JSON.
+- Database create, update and soft-delete behavior.
+
+## Local database
+
+Development connection:
+
+```text
+Server=(localdb)\FactFlowLocalDb;Database=FactFlowAppDb;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True
+```
+
+Inspect it in Visual Studio:
+
+1. Open **View → SQL Server Object Explorer**.
+2. Expand **SQL Server → (localdb)\FactFlowLocalDb → Databases**.
+3. Expand **FactFlowAppDb → Tables → dbo.Facts**.
+4. Right-click `dbo.Facts` and select **View Data**.
+
+Apply migrations manually if required:
+
+```powershell
+dotnet tool restore
+dotnet ef database update `
+  --project .\FactFlow.Infrastructure\FactFlow.Infrastructure.csproj `
+  --startup-project .\FactFlow.Web\FactFlow.Web.csproj
+```
 
 ## Configuration
 
@@ -134,6 +168,12 @@ Current suite covers:
 
 ```json
 {
+  "ConnectionStrings": {
+    "FactFlow": "configured per environment"
+  },
+  "Database": {
+    "ApplyMigrationsOnStartup": false
+  },
   "CatFactApi": {
     "Endpoint": "https://catfact.ninja/fact"
   },
@@ -150,12 +190,12 @@ CatFactApi__Endpoint
 FactJournal__Path
 DemoAuth__Username
 DemoAuth__Password
+ConnectionStrings__FactFlow
+Database__ApplyMigrationsOnStartup
 ```
 
 ## Next iterations
 
-- SQL Server persistence through EF Core.
-- Full fact CRUD.
 - Fact ratings and credibility votes.
 - Azure App Service and Azure SQL deployment.
 - Optional Microsoft Dataverse integration.

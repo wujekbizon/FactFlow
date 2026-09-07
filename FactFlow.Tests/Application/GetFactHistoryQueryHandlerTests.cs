@@ -25,7 +25,7 @@ public sealed class GetFactHistoryQueryHandlerTests
     private sealed class StubJournal(IReadOnlyList<CatFact> facts) : IFactJournal
     {
         public string FilePath => "facts.txt";
-        public Task AppendAsync(CatFact fact, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<int> AppendAsync(CatFact fact, CancellationToken cancellationToken = default) => Task.FromResult(1);
         public Task<IReadOnlyList<CatFact>> ReadAllAsync(CancellationToken cancellationToken = default) => Task.FromResult(facts);
         public Task<string?> ReadRawContentAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
     }

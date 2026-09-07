@@ -1,0 +1,43 @@
+@model EditFactInputModel
+@{
+    ViewData["Title"] = $"Edit fact #{Model.Id}";
+}
+
+<div class="page-title">
+    <div>
+        <h1>Edit fact #@Model.Id</h1>
+        <p>Update the SQL record. Original TXT evidence remains unchanged.</p>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="message success" role="status"><span>✓</span>@successMessage</div>
+}
+
+<section class="medical-card form-card">
+    <header class="card-header"><h2>Fact details</h2></header>
+    <form asp-controller="Facts" asp-action="Edit" method="post" class="record-form">
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="TabId" type="hidden" />
+        <input asp-for="Source" type="hidden" />
+        <input asp-for="JournalSequence" type="hidden" />
+
+        <div class="record-metadata">
+            <span><small>Source</small><strong>@Model.Source</strong></span>
+            <span><small>Journal record</small><strong>#@Model.JournalSequence</strong></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Content"></label>
+            <textarea asp-for="Content" rows="8" maxlength="1000" data-fact-input></textarea>
+            <div class="field-footer">
+                <span asp-validation-for="Content" class="field-error"></span>
+                <span><strong data-character-count>0</strong> / 1000 characters</span>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="secondary-button" asp-controller="Facts" asp-action="Index">Cancel</a>
+            <button class="medical-button form-submit" type="submit">Save changes</button>
+        </div>
+    </form>
+</section>

@@ -8,9 +8,13 @@ public interface IWorkspaceTabService
 
     WorkspaceTab ActivateDashboard();
 
+    WorkspaceTab OpenFacts(string? tabId = null);
+
     WorkspaceTab OpenNewFact(string? tabId = null);
 
     WorkspaceTab OpenHistory(string? tabId = null);
+
+    WorkspaceTab OpenEditFact(int factId, string? tabId = null);
 
     WorkspaceTab Close(string tabId);
 }

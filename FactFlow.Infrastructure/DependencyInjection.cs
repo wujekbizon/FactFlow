@@ -1,6 +1,8 @@
 using FactFlow.Application.Abstractions;
 using FactFlow.Infrastructure.CatFacts;
+using FactFlow.Infrastructure.Data;
 using FactFlow.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +14,16 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        var connectionString = configuration.GetConnectionString("FactFlow");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("Connection string 'FactFlow' is required.");
+        }
+
+        services.AddDbContext<FactFlowDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddScoped<IFactRepository, FactRepository>();
+        services.AddScoped<JournalProjectionSynchronizer>();
+
         services
             .AddOptions<CatFactApiOptions>()
             .Bind(configuration.GetSection(CatFactApiOptions.SectionName))

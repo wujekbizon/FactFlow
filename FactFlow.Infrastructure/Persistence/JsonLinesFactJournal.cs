@@ -25,13 +25,16 @@ public sealed class JsonLinesFactJournal : IFactJournal, IDisposable
 
     public string FilePath { get; }
 
-    public async Task AppendAsync(CatFact fact, CancellationToken cancellationToken = default)
+    public async Task<int> AppendAsync(CatFact fact, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(fact);
         await _gate.WaitAsync(cancellationToken);
 
         try
         {
+            var nextSequence = File.Exists(FilePath)
+                ? File.ReadLines(FilePath).Count(line => !string.IsNullOrWhiteSpace(line)) + 1
+                : 1;
             var directory = Path.GetDirectoryName(FilePath);
             if (!string.IsNullOrWhiteSpace(directory))
             {
@@ -46,6 +49,7 @@ public sealed class JsonLinesFactJournal : IFactJournal, IDisposable
                 cancellationToken);
 
             _logger.LogInformation("Appended Cat Fact response to {JournalPath}", FilePath);
+            return nextSequence;
         }
         finally
         {
