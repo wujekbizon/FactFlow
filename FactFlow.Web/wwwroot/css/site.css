@@ -1,0 +1,313 @@
+:root {
+  --industrial-dark: #16181a;
+  --industrial: #1e2124;
+  --gunmetal: #25292e;
+  --steel: #2d3136;
+  --border: #41464d;
+  --purple: #9d8fef;
+  --purple-dark: #5a4fcf;
+  --purple-soft: rgba(157, 143, 239, .2);
+  --white-soft: rgba(255, 255, 255, .58);
+  --alert: #f45b69;
+  font-family: "Segoe UI", Verdana, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; margin: 0; }
+body { min-width: 320px; background: var(--industrial); color: white; font-size: 13px; }
+button, input { font: inherit; }
+a { color: inherit; text-decoration: none; }
+
+.medical-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  background: var(--industrial);
+}
+
+.medical-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 320px;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  border-right: 1px solid var(--border);
+  background: var(--industrial);
+}
+
+.sidebar-identity {
+  display: grid;
+  justify-items: center;
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  background: linear-gradient(#2d3136, #1e2124);
+}
+
+.system-logo { width: 76px; height: 76px; overflow: visible; }
+.logo-outline { fill: none; stroke: #bcb4ff; stroke-width: 2.5; filter: drop-shadow(0 0 5px rgba(157,143,239,.35)); }
+.sidebar-identity .system-name { margin-top: 15px; font-size: 24px; font-weight: 300; }
+.system-version { margin-top: 3px; color: var(--white-soft); font-size: 12px; }
+
+.command-menu { overflow-y: auto; padding: 16px 8px; }
+.command-section-title { padding: 8px 14px; color: rgba(255,255,255,.56); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+
+.command-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 43px;
+  margin-bottom: 3px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: rgba(255,255,255,.84);
+  font-weight: 300;
+  transition: background .16s ease, border-color .16s ease;
+}
+
+.command-item:hover { background: #2d3136; }
+.command-item.active { border-color: rgba(157,143,239,.38); background: rgba(157,143,239,.18); color: white; }
+.command-icon { width: 24px; color: var(--purple); font-size: 19px; text-align: center; }
+
+.user-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  background: linear-gradient(#1e2124, #16181a);
+}
+
+.user-avatar, .logout-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(255,255,255,.27);
+  border-radius: 7px;
+  background: rgba(157,143,239,.2);
+}
+
+.user-avatar svg, .logout-button svg { width: 21px; fill: none; stroke: white; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.user-details { min-width: 0; }
+.user-details strong, .user-details span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-details strong { font-size: 14px; font-weight: 500; }
+.user-details span { margin-top: 2px; color: rgba(255,255,255,.54); font-size: 10px; }
+.logout-button { cursor: pointer; transition: border-color .18s, background .18s, transform .18s; }
+.logout-button:hover { border-color: #ff5c66; background: rgba(255,68,68,.18); transform: rotate(3deg); }
+
+.medical-workspace {
+  grid-column: 2;
+  min-width: 0;
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  background: var(--industrial);
+}
+
+.workspace-frame {
+  min-height: 0;
+  margin: 8px;
+  border: 2px solid rgba(157,143,239,.2);
+  border-radius: 5px;
+  background: linear-gradient(135deg, #2d3136, #1e2124);
+  overflow: hidden;
+}
+
+.tab-strip { height: 44px; display: flex; align-items: stretch; overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid var(--border); background: var(--industrial); }
+.workspace-tab { flex: 0 0 auto; height: 44px; display: flex; align-items: center; color: rgba(255,255,255,.72); }
+.workspace-tab.active { background: var(--steel); color: white; }
+.tab-label { height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 18px; white-space: nowrap; }
+.tab-label > span { width: 3px; height: 17px; border-radius: 2px; background: var(--purple); }
+.workspace-tab:not(.active) .tab-label > span { background: rgba(255,255,255,.22); }
+.tab-close-form { margin: 0 10px 0 0; }
+.tab-close { display: grid; place-items: center; width: 21px; height: 21px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,.09); color: white; cursor: pointer; font-size: 16px; line-height: 1; }
+.tab-close:hover { background: rgba(255,255,255,.18); }
+.workspace-content { max-width: 1500px; margin: 0 auto; padding: 30px; }
+
+.medical-statusbar {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  background: linear-gradient(#1e2124, #16181a);
+  color: rgba(255,255,255,.67);
+  font-size: 11px;
+}
+
+.ready-state { display: flex; align-items: center; gap: 8px; color: white; font-size: 12px; font-weight: 300; }
+.ready-state > span { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--purple-dark); font-size: 10px; }
+
+.page-title { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin: 0 0 24px; }
+.page-title h1 { margin: 0 0 6px; font-size: 28px; font-weight: 400; }
+.page-title p { margin: 0; color: rgba(255,255,255,.58); }
+.record-total { padding: 7px 10px; border: 1px solid rgba(157,143,239,.35); border-radius: 4px; color: #c4baf7; font-size: 11px; }
+
+.message { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 11px 13px; border: 1px solid; border-radius: 4px; }
+.message > span { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-weight: 700; }
+.message.success { border-color: rgba(113,205,145,.35); background: rgba(57,122,78,.15); color: #b8e8c8; }
+.message.success > span { background: #467e59; }
+.message.error { border-color: rgba(244,91,105,.4); background: rgba(130,46,55,.16); color: #ffc1c6; }
+.message.error > span { background: #913b44; }
+
+.summary-cards { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; margin-bottom: 18px; }
+.summary-card, .medical-card { border: 2px solid rgba(157,143,239,.2); border-radius: 5px; background: linear-gradient(135deg, #2d3136, #1e2124); box-shadow: 0 8px 18px rgba(0,0,0,.13); }
+.summary-card { min-height: 105px; padding: 19px 20px; }
+.summary-card span { display: block; color: rgba(255,255,255,.56); font-size: 11px; }
+.summary-card strong { display: block; margin-top: 12px; color: white; font-size: 26px; font-weight: 400; }
+
+.content-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 18px; margin-bottom: 18px; }
+.medical-card { overflow: hidden; }
+.card-header { min-height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-bottom: 1px solid var(--border); background: rgba(22,24,26,.34); }
+.card-header h2 { margin: 0; font-size: 14px; font-weight: 400; }
+.card-body { padding: 20px; }
+.request-body label { display: block; margin-bottom: 8px; color: rgba(255,255,255,.58); font-size: 11px; }
+
+.endpoint-row { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid rgba(255,255,255,.17); border-radius: 4px; background: #181a1d; }
+.endpoint-row span { padding: 4px 6px; border-radius: 3px; background: rgba(94,181,125,.16); color: #80d39d; font: 700 10px Consolas, monospace; }
+.endpoint-row code, .journal-location code { overflow: hidden; color: rgba(255,255,255,.7); font: 11px Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+
+.medical-button, .login-button {
+  width: 100%;
+  height: 40px;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #7667d4, #5a4fcf);
+  color: white;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 5px 14px rgba(46,38,111,.32);
+  transition: filter .16s, transform .16s;
+}
+.medical-button:hover, .login-button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.medical-button:disabled { cursor: wait; opacity: .67; transform: none; }
+
+.latest-card { min-height: 238px; }
+.latest-body { min-height: 190px; display: flex; flex-direction: column; justify-content: center; }
+.latest-body blockquote { margin: 0; padding: 0 0 0 15px; border-left: 3px solid var(--purple); color: rgba(255,255,255,.9); font-size: 18px; font-weight: 300; line-height: 1.55; }
+.fact-length { margin-top: 20px; color: rgba(255,255,255,.52); font-size: 11px; }
+.fact-length strong { color: white; }
+.empty-content { display: grid; justify-items: center; gap: 7px; color: rgba(255,255,255,.52); text-align: center; }
+.empty-content strong { color: white; font-size: 15px; font-weight: 400; }
+
+.history-header { gap: 20px; }
+.secondary-button { padding: 7px 11px; border: 1px solid rgba(157,143,239,.5); border-radius: 4px; color: #d3ccff; font-size: 11px; }
+.secondary-button:hover { background: rgba(157,143,239,.16); }
+.secondary-button.disabled { pointer-events: none; opacity: .35; }
+.journal-location { display: flex; align-items: center; gap: 8px; padding: 11px 18px; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(22,24,26,.18); }
+.journal-location span { color: rgba(255,255,255,.5); font-size: 10px; }
+.journal-location code { font-size: 10px; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 17px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+th { color: rgba(255,255,255,.5); font-size: 10px; font-weight: 500; }
+td { color: rgba(255,255,255,.78); font-size: 12px; }
+th:first-child, td:first-child { width: 70px; color: #b7abf4; }
+th:last-child, td:last-child { width: 90px; }
+tbody tr:hover { background: rgba(157,143,239,.07); }
+tbody tr:last-child td { border-bottom: 0; }
+.empty-table { padding: 34px; color: rgba(255,255,255,.5); text-align: center; }
+
+.form-card { max-width: 920px; }
+.record-form { padding: 24px; }
+.form-field label { display: block; margin-bottom: 9px; color: rgba(255,255,255,.72); }
+.form-field textarea { width: 100%; resize: vertical; min-height: 180px; padding: 13px; border: 1px solid rgba(157,143,239,.5); border-radius: 4px; outline: 0; background: rgba(22,24,26,.72); color: white; font: 13px/1.55 "Segoe UI",sans-serif; }
+.form-field textarea:focus { border-color: #bbb0ff; box-shadow: 0 0 0 2px rgba(157,143,239,.14); }
+.field-footer { min-height: 24px; display: flex; justify-content: space-between; gap: 20px; padding-top: 6px; color: rgba(255,255,255,.46); font-size: 10px; }
+.field-error { color: #ff969e; }
+.form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 16px; }
+.form-submit { width: 190px; margin: 0; }
+.form-note { max-width: 920px; display: flex; gap: 12px; margin-top: 14px; padding: 13px 16px; border-left: 3px solid var(--purple); background: rgba(22,24,26,.38); color: rgba(255,255,255,.55); font-size: 11px; }
+.form-note strong { color: white; font-weight: 500; }
+.form-note code { color: #bcb3f5; }
+
+.history-summary .value-alert { color: #ff9ba3; }
+.technical-history { min-height: 300px; }
+.technical-table { min-width: 820px; table-layout: fixed; }
+.technical-table th:first-child, .technical-table td:first-child { width: 62px; }
+.technical-table th:nth-child(2), .technical-table td:nth-child(2) { width: auto; }
+.technical-table th:nth-child(3), .technical-table td:nth-child(3),
+.technical-table th:nth-child(4), .technical-table td:nth-child(4) { width: 88px; }
+.technical-table th:nth-child(5), .technical-table td:nth-child(5) { width: 86px; }
+.technical-table th:nth-child(6), .technical-table td:nth-child(6) { width: 78px; }
+.technical-table th:last-child, .technical-table td:last-child { width: 104px; }
+.technical-table details summary { cursor: pointer; overflow: hidden; max-width: 640px; text-overflow: ellipsis; white-space: nowrap; }
+.technical-table details[open] summary { margin-bottom: 8px; white-space: normal; }
+.technical-table details > code { display: block; padding: 8px; border-radius: 3px; background: #17191c; color: #aeb6c0; white-space: normal; word-break: break-word; }
+.integrity-state { display: inline-block; padding: 4px 7px; border-radius: 3px; font-size: 10px; }
+.integrity-state.valid { background: rgba(88,172,117,.15); color: #8bd7a5; }
+.integrity-state.invalid { background: rgba(244,91,105,.15); color: #ff9fa6; }
+.hash { color: #b7abf4; font-size: 10px; }
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 25px;
+  background: #101214 url("../images/ai-globe.jpg") center/cover fixed no-repeat;
+}
+
+.login-page::before { content: ""; position: fixed; inset: 0; background: linear-gradient(45deg, rgba(15,17,19,.82), rgba(45,49,54,.42)); }
+.login-window { position: relative; z-index: 1; width: min(800px, 100%); min-height: 550px; overflow: hidden; border: 1.5px solid transparent; border-radius: 11px; background: linear-gradient(45deg,#9d8fef,rgba(255,255,255,.27) 75%,#2d3136) border-box; box-shadow: 0 26px 65px rgba(0,0,0,.58); }
+.login-window::before { content: ""; position: absolute; inset: 1.5px; z-index: -1; border-radius: 9px; background: linear-gradient(25deg, rgba(30,33,36,.95), rgba(45,49,54,.78)), url("../images/ai-globe.jpg") center/cover; }
+.login-titlebar { height: 30px; padding: 8px 10px; color: darkgray; font: 11px Verdana, sans-serif; }
+.login-panel { width: 250px; margin: 20px auto 0; display: grid; justify-items: stretch; text-align: center; }
+.login-panel .system-logo { width: 96px; height: 96px; justify-self: center; }
+.login-product-type { margin-top: -2px; font: 300 16px Verdana, sans-serif; }
+.login-product-name { margin: 1px 0 34px; font: 500 39px Verdana, sans-serif; }
+.login-form { text-align: left; }
+
+.field { position: relative; margin-bottom: 12px; }
+.field label { position: absolute; z-index: 1; top: -6px; left: 10px; padding: 0 5px; background: #292d31; color: rgba(255,255,255,.7); font-size: 10px; }
+.field input { width: 100%; height: 43px; padding: 8px 12px; border: 1px solid rgba(157,143,239,.55); border-radius: 4px; outline: 0; background: rgba(27,30,33,.67); color: white; }
+.field input:focus { border-color: #bdb2ff; box-shadow: 0 0 0 2px rgba(157,143,239,.15); }
+.field > span { display: block; margin: 4px 1px 0; color: #ff8b94; font-size: 10px; }
+.login-error { min-height: 16px; margin-top: 3px; color: #ff8b94; font-size: 11px; text-align: left; }
+.login-error ul { margin: 0; padding: 0; list-style: none; }
+.login-button { margin-top: 15px; }
+.login-help { margin-top: 15px; color: white; font: 500 11px Verdana, sans-serif; }
+.login-help span { margin-right: 7px; color: darkgray; }
+
+@media (max-width: 900px) {
+  .medical-shell { grid-template-columns: 240px minmax(0,1fr); }
+  .medical-sidebar { width: 240px; }
+  .summary-cards { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .content-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 680px) {
+  .medical-shell { display: block; }
+  .medical-sidebar { position: static; width: 100%; height: auto; display: block; }
+  .sidebar-identity { grid-template-columns: auto 1fr auto; align-items: center; justify-items: start; gap: 12px; padding: 10px 14px; }
+  .sidebar-identity .system-logo { width: 45px; height: 45px; }
+  .sidebar-identity .system-name { margin: 0; font-size: 19px; }
+  .system-version { margin: 0; }
+  .command-menu { padding: 7px; overflow-x: auto; }
+  .command-section { display: flex; gap: 4px; }
+  .command-section-title, .user-card { display: none; }
+  .command-item { flex: 0 0 auto; margin: 0; }
+  .medical-workspace { min-height: calc(100vh - 112px); }
+  .workspace-content { padding: 20px 15px; }
+  .page-title { align-items: flex-start; flex-direction: column; }
+  .journal-location { align-items: flex-start; flex-direction: column; }
+  .journal-location code { max-width: 100%; }
+  table { min-width: 600px; }
+}
+
+@media (max-width: 460px) {
+  .summary-cards { grid-template-columns: 1fr; }
+  .record-total { display: none; }
+  .login-page { padding: 10px; }
+  .login-window { min-height: 530px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

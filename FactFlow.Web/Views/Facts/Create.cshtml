@@ -1,0 +1,44 @@
+@model ManualFactInputModel
+@{
+    ViewData["Title"] = "New fact";
+    ViewData["ActivePage"] = "NewFact";
+    ViewData["WorkspaceTitle"] = "New fact";
+}
+
+<div class="page-title">
+    <div>
+        <h1>New fact</h1>
+        <p>Add a response manually. Length is calculated by the application.</p>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="message success" role="status"><span>✓</span>@successMessage</div>
+}
+
+<section class="medical-card form-card">
+    <header class="card-header"><h2>Fact details</h2></header>
+    <form asp-controller="Facts" asp-action="Create" method="post" class="record-form"
+          data-workspace-id="@Model.TabId"
+          data-clear-draft="@((ViewData["ClearDraft"] as bool?) == true ? "true" : "false")">
+        <input asp-for="TabId" type="hidden" />
+        <div class="form-field">
+            <label asp-for="Fact"></label>
+            <textarea asp-for="Fact" rows="8" maxlength="1000" data-fact-input></textarea>
+            <div class="field-footer">
+                <span asp-validation-for="Fact" class="field-error"></span>
+                <span><strong data-character-count>0</strong> / 1000 characters</span>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="secondary-button" asp-controller="Home" asp-action="Index">Cancel</a>
+            <button class="medical-button form-submit" type="submit">Save fact</button>
+        </div>
+    </form>
+</section>
+
+<section class="form-note">
+    <strong>TXT output</strong>
+    <span>The record uses the same <code>{"fact":"...","length":0}</code> format as API responses.</span>
+</section>

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="FactFlow.Application/FactFlow.Application.csproj" />
+  <Project Path="FactFlow.Domain/FactFlow.Domain.csproj" />
+  <Project Path="FactFlow.Infrastructure/FactFlow.Infrastructure.csproj" />
+  <Project Path="FactFlow.Tests/FactFlow.Tests.csproj" />
+  <Project Path="FactFlow.Web/FactFlow.Web.csproj" />
+</Solution>

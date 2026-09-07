@@ -1,0 +1,87 @@
+@model DashboardSnapshot
+@{
+    ViewData["Title"] = "Cat Facts";
+    ViewData["ActivePage"] = "Dashboard";
+    ViewData["WorkspaceTitle"] = "Dashboard";
+}
+
+<div class="page-title">
+    <div>
+        <h1>Cat Facts</h1>
+        <p>Download a fact from the API and save every response locally.</p>
+    </div>
+    <span class="record-total">@Model.TotalRequests saved</span>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="message success" role="status"><span>✓</span>@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="message error" role="alert"><span>!</span>@errorMessage</div>
+}
+
+<section class="summary-cards" aria-label="Response summary">
+    <article class="summary-card"><span>Responses</span><strong>@Model.TotalRequests</strong></article>
+    <article class="summary-card"><span>Unique facts</span><strong>@Model.UniqueFacts</strong></article>
+    <article class="summary-card"><span>Average length</span><strong>@Model.AverageLength.ToString("0.0")</strong></article>
+    <article class="summary-card"><span>Longest fact</span><strong>@Model.LongestFactLength</strong></article>
+</section>
+
+<section class="content-grid">
+    <article class="medical-card" id="request">
+        <header class="card-header"><h2>New fact</h2></header>
+        <div class="card-body request-body">
+            <label>API endpoint</label>
+            <div class="endpoint-row"><span>GET</span><code>https://catfact.ninja/fact</code></div>
+            <form asp-controller="Facts" asp-action="Fetch" method="post" data-fetch-form>
+                <button class="medical-button" type="submit" data-fetch-button><span>Download and save</span></button>
+            </form>
+        </div>
+    </article>
+
+    <article class="medical-card latest-card">
+        <header class="card-header"><h2>Latest response</h2></header>
+        <div class="card-body latest-body">
+            @if (Model.LatestFact is null)
+            {
+                <div class="empty-content"><strong>No responses</strong><span>Use “Download and save” to create the text file.</span></div>
+            }
+            else
+            {
+                <blockquote>@Model.LatestFact.Fact</blockquote>
+                <div class="fact-length">Length: <strong>@Model.LatestFact.Length</strong></div>
+            }
+        </div>
+    </article>
+</section>
+
+<section class="medical-card history-card" id="history">
+    <header class="card-header history-header">
+        <h2>Saved responses</h2>
+        <a class="secondary-button @(Model.TotalRequests == 0 ? "disabled" : null)"
+           asp-controller="Facts" asp-action="DownloadJournal"
+           aria-disabled="@(Model.TotalRequests == 0 ? "true" : "false")">Download TXT</a>
+    </header>
+    <div class="journal-location"><span>File:</span><code>@Model.JournalPath</code></div>
+
+    @if (Model.RecentFacts.Count == 0)
+    {
+        <div class="empty-table">The file does not exist yet.</div>
+    }
+    else
+    {
+        <div class="table-scroll">
+            <table>
+                <thead><tr><th>No.</th><th>Fact</th><th>Length</th></tr></thead>
+                <tbody>
+                @foreach (var fact in Model.RecentFacts)
+                {
+                    <tr><td>@fact.Sequence</td><td>@fact.Fact</td><td>@fact.Length</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

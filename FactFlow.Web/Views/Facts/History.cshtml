@@ -1,0 +1,61 @@
+@model FactHistorySnapshot
+@{
+    ViewData["Title"] = "Response history";
+    ViewData["ActivePage"] = "History";
+    ViewData["WorkspaceTitle"] = "Response history";
+}
+
+<div class="page-title">
+    <div>
+        <h1>Response history</h1>
+        <p>Technical validation of every record stored in the text journal.</p>
+    </div>
+    <a class="secondary-button @(Model.TotalRecords == 0 ? "disabled" : null)"
+       asp-controller="Facts" asp-action="DownloadJournal">Download TXT</a>
+</div>
+
+<section class="summary-cards history-summary" aria-label="History summary">
+    <article class="summary-card"><span>Total records</span><strong>@Model.TotalRecords</strong></article>
+    <article class="summary-card"><span>Unique records</span><strong>@Model.UniqueRecords</strong></article>
+    <article class="summary-card"><span>Duplicate records</span><strong>@Model.DuplicateRecords</strong></article>
+    <article class="summary-card"><span>Integrity failures</span><strong class="@(Model.IntegrityFailures > 0 ? "value-alert" : null)">@Model.IntegrityFailures</strong></article>
+</section>
+
+<section class="medical-card technical-history">
+    <header class="card-header"><h2>Journal diagnostics</h2></header>
+    <div class="journal-location"><span>File:</span><code>@Model.JournalPath</code></div>
+
+    @if (Model.Records.Count == 0)
+    {
+        <div class="empty-table">No records available.</div>
+    }
+    else
+    {
+        <div class="table-scroll">
+            <table class="technical-table">
+                <thead>
+                    <tr><th>No.</th><th>Fact</th><th>API length</th><th>Calculated</th><th>Integrity</th><th>Duplicate</th><th>SHA-256</th></tr>
+                </thead>
+                <tbody>
+                @foreach (var record in Model.Records)
+                {
+                    <tr>
+                        <td>@record.Sequence</td>
+                        <td>
+                            <details>
+                                <summary>@record.Fact</summary>
+                                <code>@record.RawJson</code>
+                            </details>
+                        </td>
+                        <td>@record.DeclaredLength</td>
+                        <td>@record.CalculatedLength</td>
+                        <td><span class="integrity-state @(record.HasValidLength ? "valid" : "invalid")">@(record.HasValidLength ? "Valid" : "Mismatch")</span></td>
+                        <td>@(record.IsDuplicate ? "Yes" : "No")</td>
+                        <td><code class="hash" title="@record.Sha256">@record.Sha256[..12]</code></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
