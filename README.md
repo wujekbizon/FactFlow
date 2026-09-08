@@ -33,6 +33,11 @@ Example output:
 - Preserve unsaved manual-entry drafts while switching tabs.
 - Authenticate through an ASP.NET Core cookie.
 - Manage SQL-backed facts through create, read, update and soft-delete operations.
+- Review facts through New, Reviewed, Approved and Rejected CRM states.
+- Work through a filterable SQL-backed review queue.
+- Preserve every review transition, reviewer, note and timestamp in an audit trail.
+- Protect destructive operations with Operator/Supervisor approval workflow.
+- Keep deletion requests, decisions, reasons and concurrency state in SQL.
 - Keep the required TXT file synchronized with active SQL records.
 - Bootstrap an empty database once from an existing TXT file, then use SQL as the source of truth.
 - Check application availability at `/health`.
@@ -59,6 +64,11 @@ Development login:
 ```text
 Username: operator
 Password: FactFlow2026!
+
+Supervisor login:
+
+Username: supervisor
+Password: FactFlowSupervisor2026!
 ```
 
 These credentials are limited to `appsettings.Development.json`. Deployed environments must provide their own values through configuration or environment variables.
@@ -162,6 +172,8 @@ dotnet ef database update `
   --startup-project .\FactFlow.Web\FactFlow.Web.csproj
 ```
 
+The current workflow migration is `AddSupervisorDeletionApproval`. Production startup migrations are disabled, so apply it to Azure SQL before deploying this version.
+
 ## Production configuration boundary
 
 `appsettings.Production.json` intentionally contains no secrets and disables startup migrations. Configure these values in Azure App Service **Environment variables**:
@@ -170,6 +182,8 @@ dotnet ef database update `
 ConnectionStrings__FactFlow          Azure SQL connection string
 DemoAuth__Username                   temporary private-demo username
 DemoAuth__Password                   temporary private-demo password
+DemoAuth__SupervisorUsername         temporary private-supervisor username
+DemoAuth__SupervisorPassword         temporary private-supervisor password
 FactJournal__Path                    {HOME}/data/catfacts.txt
 DataProtection__Path                 {HOME}/data/keys
 Database__ApplyMigrationsOnStartup  false
@@ -205,12 +219,14 @@ CatFactApi__Endpoint
 FactJournal__Path
 DemoAuth__Username
 DemoAuth__Password
+DemoAuth__SupervisorUsername
+DemoAuth__SupervisorPassword
 ConnectionStrings__FactFlow
 Database__ApplyMigrationsOnStartup
 ```
 
-## Next iterations
+Operators cannot delete facts directly. They submit a reason; a separate Supervisor account must approve the request. Approval soft-deletes the SQL record and regenerates the TXT projection. Request and decision history remains available in the Action approvals tab.
 
-- Fact ratings and credibility votes.
-- Azure App Service and Azure SQL deployment.
-- Optional Microsoft Dataverse integration.
+## Deployment
+
+GitHub Actions deploys FactFlow to Azure App Service. Azure SQL remains the canonical store for facts and their review audit trail.

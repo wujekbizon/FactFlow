@@ -1,12 +1,13 @@
 using System.Text;
 using FactFlow.Application.CatFacts.Commands.AddManualFact;
-using FactFlow.Application.CatFacts.Commands.DeleteFact;
 using FactFlow.Application.CatFacts.Commands.FetchCatFact;
 using FactFlow.Application.CatFacts.Commands.UpdateFact;
+using FactFlow.Application.CatFacts.Commands.ReviewFact;
 using FactFlow.Application.CatFacts.Queries.GetFactById;
 using FactFlow.Application.CatFacts.Queries.GetFacts;
 using FactFlow.Application.CatFacts.Queries.GetFactHistory;
 using FactFlow.Application.CatFacts.Queries.GetFactJournal;
+using FactFlow.Application.CatFacts.Queries.GetReviewQueue;
 using FactFlow.Application.Common.Messaging;
 using FactFlow.Domain.CatFacts;
 using FactFlow.Web.Models;
@@ -21,11 +22,12 @@ public sealed class FactsController(
     ICommandHandler<FetchCatFactCommand, FetchCatFactResult> fetchFactCommand,
     ICommandHandler<AddManualFactCommand, FactRecord> addManualFactCommand,
     ICommandHandler<UpdateFactCommand, bool> updateFactCommand,
-    ICommandHandler<DeleteFactCommand, bool> deleteFactCommand,
+    ICommandHandler<ReviewFactCommand, bool> reviewFactCommand,
     IQueryHandler<GetFactsQuery, IReadOnlyList<FactListItem>> factsQuery,
     IQueryHandler<GetFactByIdQuery, FactDetails?> factByIdQuery,
     IQueryHandler<GetFactHistoryQuery, FactHistorySnapshot> historyQuery,
     IQueryHandler<GetFactJournalQuery, FactJournalFile?> journalQuery,
+    IQueryHandler<GetReviewQueueQuery, ReviewQueueSnapshot> reviewQueueQuery,
     IWorkspaceTabService workspaceTabs,
     IWebHostEnvironment environment,
     ILogger<FactsController> logger) : Controller
@@ -110,7 +112,13 @@ public sealed class FactsController(
             TabId = tab.Id,
             Content = fact.Content,
             Source = fact.Source,
-            JournalSequence = fact.JournalSequence
+            JournalSequence = fact.JournalSequence,
+            ReviewStatus = Enum.Parse<FactReviewStatus>(fact.ReviewStatus),
+            ReviewedBy = fact.ReviewedBy,
+            ReviewNote = fact.ReviewNote,
+            ReviewedAtUtc = fact.ReviewedAtUtc,
+            HasPendingDeletionRequest = fact.HasPendingDeletionRequest,
+            ReviewHistory = fact.ReviewHistory
         });
     }
 
@@ -138,16 +146,39 @@ public sealed class FactsController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Review(ReviewFactInputModel model, CancellationToken cancellationToken)
     {
-        var deleted = await deleteFactCommand.Handle(new DeleteFactCommand(id), cancellationToken);
-        if (deleted)
+        if (!ModelState.IsValid)
         {
-            workspaceTabs.Close($"edit-{id}");
-            TempData["SuccessMessage"] = $"Fact #{id} removed from active records. The TXT file was synchronized.";
+            TempData["ErrorMessage"] = "Review status or note is invalid.";
+            return RedirectToAction(nameof(Edit), new { id = model.Id, tabId = model.TabId });
         }
 
-        return RedirectToAction(nameof(Index));
+        var reviewed = await reviewFactCommand.Handle(
+            new ReviewFactCommand(model.Id, model.Status, model.Note),
+            cancellationToken);
+        if (!reviewed)
+        {
+            return NotFound();
+        }
+
+        TempData["SuccessMessage"] = $"Fact #{model.Id} marked as {model.Status}.";
+        return RedirectToAction(nameof(Edit), new { id = model.Id, tabId = model.TabId });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ReviewQueue(
+        string? tabId,
+        string? status,
+        string? source,
+        string? reviewer,
+        CancellationToken cancellationToken)
+    {
+        workspaceTabs.OpenReviewQueue(tabId);
+        var queue = await reviewQueueQuery.Handle(
+            new GetReviewQueueQuery(status, source, reviewer),
+            cancellationToken);
+        return View(queue);
     }
 
     [HttpGet]

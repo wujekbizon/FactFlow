@@ -35,6 +35,12 @@
                     <a class="command-item @(activeTab.Kind == "NewFact" ? "active" : null)" asp-controller="Facts" asp-action="Create">
                         <span class="command-icon">＋</span><span>New fact</span>
                     </a>
+                    <a class="command-item @(activeTab.Kind == "ReviewQueue" ? "active" : null)" asp-controller="Facts" asp-action="ReviewQueue">
+                        <span class="command-icon">✓</span><span>Fact review</span>
+                    </a>
+                    <a class="command-item @(activeTab.Kind is "DeletionRequests" or "DeletionRequest" ? "active" : null)" asp-controller="DeletionRequests" asp-action="Index">
+                        <span class="command-icon">⇄</span><span>@(User.IsInRole(AppRoles.Supervisor) ? "Action approvals" : "My requests")</span>
+                    </a>
                     <a class="command-item @(activeTab.Kind == "History" ? "active" : null)" asp-controller="Facts" asp-action="History">
                         <span class="command-icon">≡</span><span>Response history</span>
                     </a>

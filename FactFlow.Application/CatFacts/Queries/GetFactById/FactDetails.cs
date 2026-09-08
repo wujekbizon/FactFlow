@@ -6,5 +6,11 @@ public sealed record FactDetails(
     int Length,
     string Source,
     int JournalSequence,
+    string ReviewStatus,
+    string? ReviewedBy,
+    string? ReviewNote,
+    DateTimeOffset? ReviewedAtUtc,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset UpdatedAtUtc);
+    DateTimeOffset UpdatedAtUtc,
+    bool HasPendingDeletionRequest,
+    IReadOnlyList<FactReviewAuditItem> ReviewHistory);

@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+<div class="page-title">
+    <div>
+        <h1>Access denied</h1>
+        <p>Your current role cannot perform this operation.</p>
+    </div>
+</div>
+
+<section class="medical-card form-card">
+    <div class="card-body">
+        <p class="workflow-hint">Sign in with the required role or return to the dashboard.</p>
+        <a class="secondary-button" asp-controller="Home" asp-action="Index">Return to dashboard</a>
+    </div>
+</section>

@@ -6,6 +6,8 @@ namespace FactFlow.Tests.TestDoubles;
 internal sealed class InMemoryFactRepository(IEnumerable<FactRecord>? facts = null) : IFactRepository
 {
     public List<FactRecord> Facts { get; } = facts?.ToList() ?? [];
+    public List<FactReviewAuditEntry> ReviewAudit { get; } = [];
+    public List<FactDeletionRequest> DeletionRequests { get; } = [];
     public int SaveCount { get; private set; }
 
     public Task<IReadOnlyList<FactRecord>> ListAsync(CancellationToken cancellationToken = default) =>
@@ -20,11 +22,31 @@ internal sealed class InMemoryFactRepository(IEnumerable<FactRecord>? facts = nu
     public Task<int> GetNextJournalSequenceAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Facts.Count == 0 ? 1 : Facts.Max(fact => fact.JournalSequence) + 1);
 
+    public Task<HashSet<int>> GetPendingDeletionFactIdsAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(DeletionRequests
+            .Where(request => request.Status == FactDeletionRequestStatus.Pending)
+            .Select(request => request.FactId)
+            .ToHashSet());
+
     public Task AddAsync(FactRecord fact, CancellationToken cancellationToken = default)
     {
         Facts.Add(fact);
         return Task.CompletedTask;
     }
+
+    public Task AddReviewAuditAsync(
+        FactReviewAuditEntry entry,
+        CancellationToken cancellationToken = default)
+    {
+        ReviewAudit.Add(entry);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<FactReviewAuditEntry>> ListReviewAuditAsync(
+        int factId,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<FactReviewAuditEntry>>(
+            ReviewAudit.Where(entry => entry.FactId == factId).ToArray());
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {

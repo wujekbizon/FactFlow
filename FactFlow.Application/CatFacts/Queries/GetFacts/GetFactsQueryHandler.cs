@@ -11,6 +11,7 @@ public sealed class GetFactsQueryHandler(IFactRepository factRepository)
         CancellationToken cancellationToken)
     {
         var facts = await factRepository.ListAsync(cancellationToken);
+        var pendingDeletionFactIds = await factRepository.GetPendingDeletionFactIdsAsync(cancellationToken);
         return facts
             .Select(fact => new FactListItem(
                 fact.Id,
@@ -18,6 +19,8 @@ public sealed class GetFactsQueryHandler(IFactRepository factRepository)
                 fact.Length,
                 fact.Source.ToString(),
                 fact.JournalSequence,
+                fact.ReviewStatus.ToString(),
+                pendingDeletionFactIds.Contains(fact.Id),
                 fact.CreatedAtUtc,
                 fact.UpdatedAtUtc))
             .ToArray();

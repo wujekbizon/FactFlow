@@ -26,23 +26,29 @@
     {
         <div class="table-scroll">
             <table class="facts-table">
-                <thead><tr><th>ID</th><th>Fact</th><th>Length</th><th>Source</th><th>Journal</th><th>Updated</th><th></th></tr></thead>
+                <thead><tr><th>ID</th><th>Fact</th><th>Source</th><th>Review</th><th>Updated</th><th></th></tr></thead>
                 <tbody>
                 @foreach (var fact in Model)
                 {
                     <tr>
                         <td>@fact.Id</td>
                         <td>@fact.Content</td>
-                        <td>@fact.Length</td>
                         <td><span class="source-badge source-@fact.Source.ToLowerInvariant()">@fact.Source</span></td>
-                        <td>#@fact.JournalSequence</td>
+                        <td><span class="state-badge state-@fact.ReviewStatus.ToLowerInvariant()">@fact.ReviewStatus</span></td>
                         <td>@fact.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                         <td class="row-actions">
                             <a asp-controller="Facts" asp-action="Edit" asp-route-id="@fact.Id">Edit</a>
-                            <form asp-controller="Facts" asp-action="Delete" asp-route-id="@fact.Id" method="post"
-                                  onsubmit="return confirm('Remove fact #@fact.Id from active records and synchronize the TXT file?');">
-                                <button type="submit">Delete</button>
-                            </form>
+                            @if (User.IsInRole(AppRoles.Operator))
+                            {
+                                if (fact.HasPendingDeletionRequest)
+                                {
+                                    <span class="state-badge state-pending">Pending approval</span>
+                                }
+                                else
+                                {
+                                    <a asp-controller="DeletionRequests" asp-action="Create" asp-route-factId="@fact.Id">Request removal</a>
+                                }
+                            }
                         </td>
                     </tr>
                 }

@@ -1,13 +1,18 @@
 using FactFlow.Application.CatFacts.Commands.FetchCatFact;
 using FactFlow.Application.CatFacts.Commands.AddManualFact;
-using FactFlow.Application.CatFacts.Commands.DeleteFact;
 using FactFlow.Application.CatFacts.Commands.UpdateFact;
+using FactFlow.Application.CatFacts.Commands.ReviewFact;
+using FactFlow.Application.CatFacts.Commands.RequestFactDeletion;
+using FactFlow.Application.CatFacts.Commands.DecideFactDeletion;
 using FactFlow.Application.CatFacts.Queries.GetFactById;
 using FactFlow.Application.CatFacts.Queries.GetFacts;
 using FactFlow.Application.CatFacts.Queries.GetDashboard;
 using FactFlow.Application.CatFacts.Queries.GetFactHistory;
 using FactFlow.Application.CatFacts.Queries.GetFactJournal;
+using FactFlow.Application.CatFacts.Queries.GetReviewQueue;
+using FactFlow.Application.CatFacts.Queries.GetDeletionRequests;
 using FactFlow.Application.Common.Messaging;
+using FactFlow.Application.Security;
 using FactFlow.Infrastructure;
 using FactFlow.Infrastructure.Data;
 using FactFlow.Web.Authentication;
@@ -36,12 +41,17 @@ builder.Services.AddDataProtection()
 builder.Services.AddTransient<ICommandHandler<FetchCatFactCommand, FetchCatFactResult>, FetchCatFactCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<AddManualFactCommand, FactFlow.Domain.CatFacts.FactRecord>, AddManualFactCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<UpdateFactCommand, bool>, UpdateFactCommandHandler>();
-builder.Services.AddTransient<ICommandHandler<DeleteFactCommand, bool>, DeleteFactCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<ReviewFactCommand, bool>, ReviewFactCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<RequestFactDeletionCommand, RequestFactDeletionResult>, RequestFactDeletionCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<ApproveFactDeletionCommand, FactDeletionDecisionResult>, ApproveFactDeletionCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<RejectFactDeletionCommand, FactDeletionDecisionResult>, RejectFactDeletionCommandHandler>();
 builder.Services.AddTransient<IQueryHandler<GetDashboardQuery, DashboardSnapshot>, GetDashboardQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetFactsQuery, IReadOnlyList<FactListItem>>, GetFactsQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetFactByIdQuery, FactDetails?>, GetFactByIdQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetFactHistoryQuery, FactHistorySnapshot>, GetFactHistoryQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetFactJournalQuery, FactJournalFile?>, GetFactJournalQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetReviewQueueQuery, ReviewQueueSnapshot>, GetReviewQueueQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetDeletionRequestsQuery, DeletionRequestQueueSnapshot>, GetDeletionRequestsQueryHandler>();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.Configure<DemoAuthOptions>(builder.Configuration.GetSection(DemoAuthOptions.SectionName));
 builder.Services.AddDistributedMemoryCache();
@@ -53,13 +63,14 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(8);
 });
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
 builder.Services.AddScoped<IWorkspaceTabService, SessionWorkspaceTabService>();
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
         options.Cookie.Name = "FactFlow.Auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
@@ -69,7 +80,13 @@ builder.Services
         options.SlidingExpiration = true;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AuthorizationPolicies.CanRequestDeletion,
+        policy => policy.RequireRole(AppRoles.Operator));
+    options.AddPolicy(AuthorizationPolicies.CanDecideDeletion,
+        policy => policy.RequireRole(AppRoles.Supervisor));
+});
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();

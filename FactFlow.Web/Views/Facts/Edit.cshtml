@@ -14,6 +14,10 @@
 {
     <div class="message success" role="status"><span>✓</span>@successMessage</div>
 }
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="message error" role="alert"><span>!</span>@errorMessage</div>
+}
 
 <section class="medical-card form-card">
     <header class="card-header"><h2>Fact details</h2></header>
@@ -26,6 +30,7 @@
         <div class="record-metadata">
             <span><small>Source</small><strong>@Model.Source</strong></span>
             <span><small>Journal record</small><strong>#@Model.JournalSequence</strong></span>
+            <span><small>Review</small><strong>@Model.ReviewStatus</strong></span>
         </div>
         <div class="form-field">
             <label asp-for="Content"></label>
@@ -40,4 +45,77 @@
             <button class="medical-button form-submit" type="submit">Save changes</button>
         </div>
     </form>
+</section>
+
+<section class="medical-card form-card workflow-card">
+    <header class="card-header"><h2>CRM review</h2><span class="state-badge state-@Model.ReviewStatus.ToString().ToLowerInvariant()">@Model.ReviewStatus</span></header>
+    <form asp-controller="Facts" asp-action="Review" method="post" class="record-form">
+        <input name="Id" value="@Model.Id" type="hidden" />
+        <input name="TabId" value="@Model.TabId" type="hidden" />
+        <div class="form-field">
+            <label for="review-status">Status</label>
+            <select id="review-status" name="Status">
+                @foreach (var status in Enum.GetValues<FactReviewStatus>())
+                {
+                    <option value="@status" selected="@(status == Model.ReviewStatus ? "selected" : null)">@status</option>
+                }
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="review-note">Review note</label>
+            <textarea id="review-note" name="Note" rows="4" maxlength="2000">@Model.ReviewNote</textarea>
+        </div>
+        <div class="workflow-details">
+            <span>Reviewer: <strong>@(Model.ReviewedBy ?? "Not reviewed")</strong></span>
+            <span>Reviewed: <strong>@(Model.ReviewedAtUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "—")</strong></span>
+        </div>
+        <div class="form-actions">
+            <button class="medical-button form-submit" type="submit">Save review</button>
+        </div>
+    </form>
+</section>
+
+@if (User.IsInRole(AppRoles.Operator))
+{
+    <section class="medical-card form-card workflow-card">
+        <header class="card-header"><h2>Controlled deletion</h2><span class="state-badge @(Model.HasPendingDeletionRequest ? "state-pending" : "state-new")">@(Model.HasPendingDeletionRequest ? "Pending approval" : "Supervisor approval")</span></header>
+        <div class="record-form">
+            @if (Model.HasPendingDeletionRequest)
+            {
+                <p class="workflow-hint">A deletion request is already waiting for supervisor decision.</p>
+            }
+            else
+            {
+                <p class="workflow-hint">Removing a fact requires a reason and supervisor approval.</p>
+                <a class="secondary-button" asp-controller="DeletionRequests" asp-action="Create" asp-route-factId="@Model.Id">Open deletion request</a>
+            }
+        </div>
+    </section>
+}
+
+<section class="medical-card form-card workflow-card">
+    <header class="card-header"><h2>Review audit history</h2><span class="card-count">@Model.ReviewHistory.Count events</span></header>
+    @if (Model.ReviewHistory.Count == 0)
+    {
+        <div class="empty-table">No review activity recorded.</div>
+    }
+    else
+    {
+        <div class="table-scroll">
+            <table class="audit-table">
+                <thead><tr><th>Time</th><th>Transition</th><th>Reviewer</th><th>Note</th></tr></thead>
+                <tbody>
+                @foreach (var entry in Model.ReviewHistory)
+                {
+                    <tr>
+                        <td>@entry.OccurredAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td><span class="state-badge state-@entry.ToStatus.ToLowerInvariant()">@entry.FromStatus → @entry.ToStatus</span></td>
+                        <td>@entry.ReviewedBy</td>
+                        <td>@(entry.Note ?? "—")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
 </section>

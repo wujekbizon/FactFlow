@@ -1,0 +1,101 @@
+@model DeletionRequestQueueSnapshot
+@using FactFlow.Application.Security
+@using FactFlow.Domain.CatFacts
+@using FactFlow.Web.Workspaces
+@inject IWorkspaceTabService WorkspaceTabs
+@{
+    ViewData["Title"] = Model.IsSupervisor ? "Action approvals" : "My requests";
+}
+
+<div class="page-title">
+    <div>
+        <h1>@(Model.IsSupervisor ? "Action approvals" : "My requests")</h1>
+        <p>@(Model.IsSupervisor ? "Supervisor decisions for destructive operations." : "Track your requested fact deletions.")</p>
+    </div>
+    <span class="record-total">@Model.PendingCount pending</span>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="message success" role="status"><span>✓</span>@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="message error" role="alert"><span>!</span>@errorMessage</div>
+}
+
+<div class="summary-cards review-summary">
+    <a class="summary-card" asp-action="Index" asp-route-status="Pending"><span>Pending</span><strong>@Model.PendingCount</strong></a>
+    <a class="summary-card" asp-action="Index" asp-route-status="Approved"><span>Approved</span><strong>@Model.ApprovedCount</strong></a>
+    <a class="summary-card" asp-action="Index" asp-route-status="Rejected"><span>Rejected</span><strong>@Model.RejectedCount</strong></a>
+    <a class="summary-card" asp-action="Index" asp-route-status="Expired"><span>Expired</span><strong>@Model.ExpiredCount</strong></a>
+</div>
+
+<section class="medical-card queue-card">
+    <header class="card-header"><h2>Deletion requests</h2><span class="card-count">@(Model.SelectedStatus ?? "All statuses")</span></header>
+    <form asp-action="Index" method="get" class="queue-filters">
+        <select name="status" aria-label="Request status">
+            <option value="">All statuses</option>
+            @foreach (var status in Enum.GetValues<FactDeletionRequestStatus>())
+            {
+                <option value="@status" selected="@(status.ToString() == Model.SelectedStatus ? "selected" : null)">@status</option>
+            }
+        </select>
+        <button class="secondary-button" type="submit">Apply filter</button>
+        <a class="secondary-button" asp-action="Index">Clear</a>
+    </form>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="empty-table">No deletion requests found.</div>
+    }
+    else
+    {
+        <div class="table-scroll">
+            <table class="queue-table approval-table">
+                <thead><tr><th>ID</th><th>Fact snapshot</th><th>Requester</th><th>Reason</th><th>Status</th><th>Requested</th><th>Decision</th></tr></thead>
+                <tbody>
+                @foreach (var request in Model.Items)
+                {
+                    <tr>
+                        <td>#@request.Id</td>
+                        <td>@request.FactContentSnapshot</td>
+                        <td>@request.RequestedBy</td>
+                        <td>@request.Reason</td>
+                        <td><span class="state-badge state-@request.Status.ToLowerInvariant()">@request.Status</span></td>
+                        <td>@request.RequestedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            @if (Model.IsSupervisor && request.Status == nameof(FactDeletionRequestStatus.Pending))
+                            {
+                                <form asp-action="Approve" method="post" class="approval-form" onsubmit="return confirm('Approve deletion request #@request.Id?');">
+                                    <input name="RequestId" value="@request.Id" type="hidden" />
+                                    <input name="TabId" value="@WorkspaceTabs.ActiveTabId" type="hidden" />
+                                    <input name="Note" placeholder="Approval note (optional)" maxlength="1000" />
+                                    <button class="row-action-approve" type="submit">Approve</button>
+                                </form>
+                                <form asp-action="Reject" method="post" class="approval-form" onsubmit="return confirm('Reject deletion request #@request.Id?');">
+                                    <input name="RequestId" value="@request.Id" type="hidden" />
+                                    <input name="TabId" value="@WorkspaceTabs.ActiveTabId" type="hidden" />
+                                    <input name="Note" placeholder="Rejection reason (required)" maxlength="1000" required minlength="10" />
+                                    <button class="row-action-reject" type="submit">Reject</button>
+                                </form>
+                            }
+                            else if (request.DecidedBy is not null)
+                            {
+                                <div class="request-decision">
+                                    <strong>@request.DecidedBy</strong>
+                                    <span>@(request.DecidedAtUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "—")</span>
+                                    @if (!string.IsNullOrWhiteSpace(request.DecisionNote))
+                                    {
+                                        <span>@request.DecisionNote</span>
+                                    }
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

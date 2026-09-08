@@ -14,6 +14,12 @@ public interface IWorkspaceTabService
 
     WorkspaceTab OpenHistory(string? tabId = null);
 
+    WorkspaceTab OpenReviewQueue(string? tabId = null);
+
+    WorkspaceTab OpenDeletionRequests(string? tabId = null);
+
+    WorkspaceTab OpenDeletionRequest(int factId, string? tabId = null);
+
     WorkspaceTab OpenEditFact(int factId, string? tabId = null);
 
     WorkspaceTab Close(string tabId);

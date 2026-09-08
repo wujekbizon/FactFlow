@@ -1,0 +1,75 @@
+@model ReviewQueueSnapshot
+@{
+    ViewData["Title"] = "Review queue";
+}
+
+<div class="page-title">
+    <div>
+        <h1>Review queue</h1>
+        <p>Review and classify facts stored in the canonical SQL database.</p>
+    </div>
+    <span class="record-total">@Model.Items.Count shown</span>
+</div>
+
+<div class="summary-cards review-summary">
+    <a class="summary-card" asp-action="ReviewQueue" asp-route-status="New"><span>New</span><strong>@Model.NewCount</strong></a>
+    <a class="summary-card" asp-action="ReviewQueue" asp-route-status="Reviewed"><span>Reviewed</span><strong>@Model.ReviewedCount</strong></a>
+    <a class="summary-card" asp-action="ReviewQueue" asp-route-status="Approved"><span>Approved</span><strong>@Model.ApprovedCount</strong></a>
+    <a class="summary-card" asp-action="ReviewQueue" asp-route-status="Rejected"><span>Rejected</span><strong>@Model.RejectedCount</strong></a>
+</div>
+
+<section class="medical-card queue-card">
+    <header class="card-header"><h2>Queue records</h2><span class="card-count">@Model.Total total</span></header>
+    <form asp-action="ReviewQueue" method="get" class="queue-filters">
+        <select name="status" aria-label="Review status">
+            <option value="">All statuses</option>
+            @foreach (var status in Enum.GetValues<FactReviewStatus>())
+            {
+                <option value="@status" selected="@(status.ToString() == Model.SelectedStatus ? "selected" : null)">@status</option>
+            }
+        </select>
+        <select name="source" aria-label="Fact source">
+            <option value="">All sources</option>
+            @foreach (var source in Enum.GetValues<FactSource>())
+            {
+                <option value="@source" selected="@(source.ToString() == Model.SelectedSource ? "selected" : null)">@source</option>
+            }
+        </select>
+        <select name="reviewer" aria-label="Reviewer">
+            <option value="">All reviewers</option>
+            @foreach (var reviewer in Model.Reviewers)
+            {
+                <option value="@reviewer" selected="@(reviewer == Model.SelectedReviewer ? "selected" : null)">@reviewer</option>
+            }
+        </select>
+        <button class="secondary-button" type="submit">Apply filters</button>
+        <a class="secondary-button" asp-action="ReviewQueue">Clear</a>
+    </form>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="empty-table">No facts match the selected filters.</div>
+    }
+    else
+    {
+        <div class="table-scroll">
+            <table class="queue-table">
+                <thead><tr><th>ID</th><th>Fact</th><th>Source</th><th>Status</th><th>Reviewer</th><th>Created</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var fact in Model.Items)
+                {
+                    <tr>
+                        <td>@fact.Id</td>
+                        <td>@fact.Content</td>
+                        <td><span class="source-badge source-@fact.Source.ToLowerInvariant()">@fact.Source</span></td>
+                        <td><span class="state-badge state-@fact.ReviewStatus.ToLowerInvariant()">@fact.ReviewStatus</span></td>
+                        <td>@(fact.ReviewedBy ?? "Unassigned")</td>
+                        <td>@fact.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="row-actions"><a asp-action="Edit" asp-route-id="@fact.Id">Review</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

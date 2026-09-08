@@ -1,0 +1,35 @@
+@model RequestFactDeletionInputModel
+@{
+    ViewData["Title"] = $"Request deletion for fact #{Model.FactId}";
+}
+
+<div class="page-title">
+    <div>
+        <h1>Request deletion</h1>
+        <p>Fact #@Model.FactId will remain active until a supervisor decides.</p>
+    </div>
+</div>
+
+<section class="medical-card form-card">
+    <header class="card-header"><h2>Supervisor approval required</h2></header>
+    <form asp-controller="DeletionRequests" asp-action="Create" method="post" class="record-form">
+        <input asp-for="FactId" type="hidden" />
+        <input asp-for="TabId" type="hidden" />
+        <input asp-for="FactContent" type="hidden" />
+        <div class="request-fact-preview">
+            <small>Fact snapshot</small>
+            <blockquote>@Model.FactContent</blockquote>
+        </div>
+        <div class="form-field">
+            <label asp-for="Reason"></label>
+            <textarea asp-for="Reason" rows="7" maxlength="1000" placeholder="Explain why this fact should be removed."></textarea>
+            <div class="field-footer"><span asp-validation-for="Reason" class="field-error"></span><span>10–1000 characters</span></div>
+        </div>
+        <div class="form-actions">
+            <a class="secondary-button" asp-controller="Workspace" asp-action="Cancel" asp-route-tabId="@Model.TabId">Cancel</a>
+            <button class="medical-button form-submit" type="submit">Send for approval</button>
+        </div>
+    </form>
+</section>
+
+<section class="form-note"><strong>Control</strong><span>The operator cannot delete the record directly. The supervisor decision is recorded in SQL.</span></section>

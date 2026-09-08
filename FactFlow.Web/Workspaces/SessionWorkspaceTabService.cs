@@ -11,6 +11,9 @@ public sealed class SessionWorkspaceTabService(IHttpContextAccessor httpContextA
     private const string NewFactKind = "NewFact";
     private const string FactsKind = "Facts";
     private const string HistoryKind = "History";
+    private const string ReviewQueueKind = "ReviewQueue";
+    private const string DeletionRequestsKind = "DeletionRequests";
+    private const string DeletionRequestKind = "DeletionRequest";
     private const string EditFactKind = "EditFact";
     private static readonly WorkspaceTab Dashboard = new(
         DashboardId, "Dashboard", "Dashboard", "Home", "Index", false);
@@ -86,6 +89,59 @@ public sealed class SessionWorkspaceTabService(IHttpContextAccessor httpContextA
         if (existing is null)
         {
             existing = new WorkspaceTab("history", HistoryKind, "Response history", "Facts", "History", true);
+            tabs.Add(existing);
+            SaveTabs(tabs);
+        }
+
+        SetActive(existing.Id);
+        return existing;
+    }
+
+    public WorkspaceTab OpenReviewQueue(string? tabId = null)
+    {
+        var tabs = ReadTabs();
+        var existing = tabs.FirstOrDefault(tab => tab.Kind == ReviewQueueKind);
+        if (existing is null)
+        {
+            existing = new WorkspaceTab("review-queue", ReviewQueueKind, "Review queue", "Facts", "ReviewQueue", true);
+            tabs.Add(existing);
+            SaveTabs(tabs);
+        }
+
+        SetActive(existing.Id);
+        return existing;
+    }
+
+    public WorkspaceTab OpenDeletionRequests(string? tabId = null)
+    {
+        var tabs = ReadTabs();
+        var existing = tabs.FirstOrDefault(tab => tab.Kind == DeletionRequestsKind);
+        if (existing is null)
+        {
+            existing = new WorkspaceTab("deletion-requests", DeletionRequestsKind, "Action approvals", "DeletionRequests", "Index", true);
+            tabs.Add(existing);
+            SaveTabs(tabs);
+        }
+
+        SetActive(existing.Id);
+        return existing;
+    }
+
+    public WorkspaceTab OpenDeletionRequest(int factId, string? tabId = null)
+    {
+        var tabs = ReadTabs();
+        var existing = tabs.FirstOrDefault(tab =>
+            tab.Kind == DeletionRequestKind && tab.EntityId == factId);
+        if (existing is null)
+        {
+            existing = new WorkspaceTab(
+                $"delete-request-{factId}",
+                DeletionRequestKind,
+                $"Delete request #{factId}",
+                "DeletionRequests",
+                "Create",
+                true,
+                factId);
             tabs.Add(existing);
             SaveTabs(tabs);
         }

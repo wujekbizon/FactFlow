@@ -6,5 +6,7 @@ public sealed record FactListItem(
     int Length,
     string Source,
     int JournalSequence,
+    string ReviewStatus,
+    bool HasPendingDeletionRequest,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc);

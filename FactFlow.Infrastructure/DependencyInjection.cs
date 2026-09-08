@@ -27,6 +27,7 @@ public static class DependencyInjection
                     maxRetryDelay: TimeSpan.FromSeconds(10),
                     errorNumbersToAdd: null)));
         services.AddScoped<IFactRepository, FactRepository>();
+        services.AddScoped<IFactDeletionRequestRepository, FactDeletionRequestRepository>();
         services.AddScoped<FactFileSynchronizer>();
         services.AddScoped<IFactFileSynchronizer>(services => services.GetRequiredService<FactFileSynchronizer>());
 

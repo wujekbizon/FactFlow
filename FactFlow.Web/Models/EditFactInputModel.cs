@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using FactFlow.Domain.CatFacts;
+using FactFlow.Application.CatFacts.Queries.GetFactById;
 
 namespace FactFlow.Web.Models;
 
@@ -14,4 +16,10 @@ public sealed class EditFactInputModel
 
     public string Source { get; set; } = string.Empty;
     public int JournalSequence { get; set; }
+    public FactReviewStatus ReviewStatus { get; set; }
+    public string? ReviewedBy { get; set; }
+    public string? ReviewNote { get; set; }
+    public DateTimeOffset? ReviewedAtUtc { get; set; }
+    public bool HasPendingDeletionRequest { get; set; }
+    public IReadOnlyList<FactReviewAuditItem> ReviewHistory { get; set; } = [];
 }

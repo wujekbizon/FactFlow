@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using FactFlow.Web.Authentication;
+using FactFlow.Application.Security;
 using FactFlow.Web.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -36,16 +37,24 @@ public sealed class AccountController(IOptions<DemoAuthOptions> authOptions) : C
         }
 
         var configured = authOptions.Value;
-        if (string.IsNullOrWhiteSpace(configured.Username) || string.IsNullOrEmpty(configured.Password))
+        var operatorConfigured = !string.IsNullOrWhiteSpace(configured.Username)
+            && !string.IsNullOrEmpty(configured.Password);
+        var supervisorConfigured = !string.IsNullOrWhiteSpace(configured.SupervisorUsername)
+            && !string.IsNullOrEmpty(configured.SupervisorPassword);
+        if (!operatorConfigured && !supervisorConfigured)
         {
             ModelState.AddModelError(string.Empty, "Login is not configured for this environment.");
             return View(model);
         }
 
-        var validUsername = string.Equals(model.Username, configured.Username, StringComparison.OrdinalIgnoreCase);
-        var validPassword = FixedTimeEquals(model.Password, configured.Password);
+        var isOperator = operatorConfigured
+            && string.Equals(model.Username, configured.Username, StringComparison.OrdinalIgnoreCase)
+            && FixedTimeEquals(model.Password, configured.Password);
+        var isSupervisor = supervisorConfigured
+            && string.Equals(model.Username, configured.SupervisorUsername, StringComparison.OrdinalIgnoreCase)
+            && FixedTimeEquals(model.Password, configured.SupervisorPassword);
 
-        if (!validUsername || !validPassword)
+        if (!isOperator && !isSupervisor)
         {
             ModelState.AddModelError(string.Empty, "Invalid username or password.");
             return View(model);
@@ -53,8 +62,8 @@ public sealed class AccountController(IOptions<DemoAuthOptions> authOptions) : C
 
         Claim[] claims =
         [
-            new(ClaimTypes.Name, configured.Username),
-            new(ClaimTypes.Role, "Operator")
+            new(ClaimTypes.Name, isSupervisor ? configured.SupervisorUsername : configured.Username),
+            new(ClaimTypes.Role, isSupervisor ? AppRoles.Supervisor : AppRoles.Operator)
         ];
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -66,6 +75,10 @@ public sealed class AccountController(IOptions<DemoAuthOptions> authOptions) : C
             ? LocalRedirect(model.ReturnUrl)
             : RedirectToAction("Index", "Home");
     }
+
+    [Authorize]
+    [HttpGet]
+    public IActionResult AccessDenied() => View();
 
     [Authorize]
     [HttpPost]
