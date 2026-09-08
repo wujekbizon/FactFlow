@@ -17,6 +17,9 @@ internal sealed class InMemoryFactRepository(IEnumerable<FactRecord>? facts = nu
     public Task<HashSet<int>> GetJournalSequencesAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Facts.Select(fact => fact.JournalSequence).ToHashSet());
 
+    public Task<int> GetNextJournalSequenceAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(Facts.Count == 0 ? 1 : Facts.Max(fact => fact.JournalSequence) + 1);
+
     public Task AddAsync(FactRecord fact, CancellationToken cancellationToken = default)
     {
         Facts.Add(fact);

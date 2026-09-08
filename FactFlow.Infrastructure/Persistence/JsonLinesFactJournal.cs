@@ -95,6 +95,54 @@ public sealed class JsonLinesFactJournal : IFactJournal, IDisposable
         }
     }
 
+    public async Task ReplaceAllAsync(
+        IReadOnlyList<CatFact> facts,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(facts);
+        await _gate.WaitAsync(cancellationToken);
+
+        try
+        {
+            var directory = Path.GetDirectoryName(FilePath);
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var lines = facts.Select(fact => JsonSerializer.Serialize(fact, JsonOptions));
+            var content = string.Join(Environment.NewLine, lines);
+            if (facts.Count > 0)
+            {
+                content += Environment.NewLine;
+            }
+
+            var temporaryPath = $"{FilePath}.{Guid.NewGuid():N}.tmp";
+            try
+            {
+                await File.WriteAllTextAsync(
+                    temporaryPath,
+                    content,
+                    new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                    cancellationToken);
+                File.Move(temporaryPath, FilePath, overwrite: true);
+            }
+            finally
+            {
+                if (File.Exists(temporaryPath))
+                {
+                    File.Delete(temporaryPath);
+                }
+            }
+
+            _logger.LogInformation("Synchronized {Count} database facts to {JournalPath}", facts.Count, FilePath);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     public async Task<string?> ReadRawContentAsync(CancellationToken cancellationToken = default)
     {
         await _gate.WaitAsync(cancellationToken);

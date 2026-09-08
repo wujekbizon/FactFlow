@@ -81,7 +81,9 @@ public sealed class FactsController(
         var tab = workspaceTabs.OpenNewFact(model.TabId);
         var fact = await addManualFactCommand.Handle(new AddManualFactCommand(model.Fact), cancellationToken);
         TempData["SuccessMessage"] = $"Manual fact saved with calculated length {fact.Length}.";
-        return RedirectToAction(nameof(Create), new { tabId = tab.Id, saved = true });
+        var next = workspaceTabs.Close(tab.Id);
+        return RedirectToAction(next.Action, next.Controller,
+            next.Id == "dashboard" ? null : new { id = next.EntityId, tabId = next.Id });
     }
 
     [HttpGet]
@@ -142,7 +144,7 @@ public sealed class FactsController(
         if (deleted)
         {
             workspaceTabs.Close($"edit-{id}");
-            TempData["SuccessMessage"] = $"Fact #{id} removed from active records. The TXT journal is unchanged.";
+            TempData["SuccessMessage"] = $"Fact #{id} removed from active records. The TXT file was synchronized.";
         }
 
         return RedirectToAction(nameof(Index));

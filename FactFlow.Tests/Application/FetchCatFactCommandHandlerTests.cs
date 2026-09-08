@@ -59,6 +59,9 @@ public sealed class FetchCatFactCommandHandlerTests
         public Task<IReadOnlyList<CatFact>> ReadAllAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<CatFact>>(AppendedFacts);
 
+        public Task ReplaceAllAsync(IReadOnlyList<CatFact> facts, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
         public Task<string?> ReadRawContentAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<string?>(null);
     }

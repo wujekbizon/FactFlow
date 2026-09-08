@@ -1,0 +1,59 @@
+name: Build and deploy .NET Core application to Web App factflow-greg-2026
+on:
+  push:
+    branches:
+    - main
+permissions:
+  id-token: write
+  contents: read
+env:
+  AZURE_WEBAPP_NAME: factflow-greg-2026
+  AZURE_WEBAPP_PACKAGE_PATH: FactFlow.Web\published
+  CONFIGURATION: Release
+  DOTNET_CORE_VERSION: 10.0.x
+  SOLUTION_FILE: FactFlow.slnx
+  WEB_PROJECT: FactFlow.Web\FactFlow.Web.csproj
+jobs:
+  build:
+    environment: factflow_greg_2026_Env
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+    - name: Restore
+      run: dotnet restore "${{ env.SOLUTION_FILE }}"
+    - name: Build
+      run: dotnet build "${{ env.SOLUTION_FILE }}" --configuration ${{ env.CONFIGURATION }} --no-restore
+    - name: Test
+      run: dotnet test "${{ env.SOLUTION_FILE }}" --configuration ${{ env.CONFIGURATION }} --no-build --no-restore
+    - name: Publish
+      run: dotnet publish "${{ env.WEB_PROJECT }}" --configuration ${{ env.CONFIGURATION }} --no-build --no-restore --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
+    - name: Publish Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: webapp
+        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+  deploy:
+    environment: factflow_greg_2026_Env
+    runs-on: windows-latest
+    needs: build
+    steps:
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v4
+      with:
+        name: webapp
+        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.factflow_greg_2026_CLIENT_ID_F978 }}
+        tenant-id: ${{ vars.factflow_greg_2026_TENANT_ID_F978 }}
+        subscription-id: ${{ vars.factflow_greg_2026_SUBSCRIPTION_ID_F978 }}
+    - name: Deploy to Azure WebApp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}

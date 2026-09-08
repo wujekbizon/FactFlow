@@ -8,6 +8,8 @@ public interface IFactJournal
 
     Task<int> AppendAsync(CatFact fact, CancellationToken cancellationToken = default);
 
+    Task ReplaceAllAsync(IReadOnlyList<CatFact> facts, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<CatFact>> ReadAllAsync(CancellationToken cancellationToken = default);
 
     Task<string?> ReadRawContentAsync(CancellationToken cancellationToken = default);

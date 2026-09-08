@@ -18,10 +18,11 @@ public sealed class AddManualFactCommandHandler(IFactJournal factJournal, IFactR
         }
 
         var fact = new CatFact(content, content.Length);
-        var sequence = await factJournal.AppendAsync(fact, cancellationToken);
+        var sequence = await factRepository.GetNextJournalSequenceAsync(cancellationToken);
         var record = FactRecord.Create(fact, FactSource.Manual, sequence, DateTimeOffset.UtcNow);
         await factRepository.AddAsync(record, cancellationToken);
         await factRepository.SaveChangesAsync(cancellationToken);
+        await factJournal.AppendAsync(fact, cancellationToken);
         return record;
     }
 }

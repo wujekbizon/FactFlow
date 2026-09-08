@@ -64,7 +64,7 @@
            asp-controller="Facts" asp-action="DownloadJournal"
            aria-disabled="@(Model.TotalRequests == 0 ? "true" : "false")">Download TXT</a>
     </header>
-    <div class="journal-location"><span>Immutable TXT journal:</span><code>@Model.JournalPath</code></div>
+    <div class="journal-location"><span>Synchronized TXT file:</span><code>@Model.JournalPath</code></div>
 
     @if (Model.RecentFacts.Count == 0)
     {

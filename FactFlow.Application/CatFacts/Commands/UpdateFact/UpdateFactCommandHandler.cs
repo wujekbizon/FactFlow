@@ -3,7 +3,9 @@ using FactFlow.Application.Common.Messaging;
 
 namespace FactFlow.Application.CatFacts.Commands.UpdateFact;
 
-public sealed class UpdateFactCommandHandler(IFactRepository factRepository)
+public sealed class UpdateFactCommandHandler(
+    IFactRepository factRepository,
+    IFactFileSynchronizer factFileSynchronizer)
     : ICommandHandler<UpdateFactCommand, bool>
 {
     public async Task<bool> Handle(UpdateFactCommand command, CancellationToken cancellationToken)
@@ -16,6 +18,7 @@ public sealed class UpdateFactCommandHandler(IFactRepository factRepository)
 
         fact.UpdateContent(command.Content, DateTimeOffset.UtcNow);
         await factRepository.SaveChangesAsync(cancellationToken);
+        await factFileSynchronizer.SynchronizeFromDatabaseAsync(cancellationToken);
         return true;
     }
 }

@@ -6,3 +6,4 @@
 !**/App_Data/.gitkeep
 TestResults/
 *.publish.xml
+/*.md

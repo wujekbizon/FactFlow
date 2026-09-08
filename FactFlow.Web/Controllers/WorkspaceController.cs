@@ -7,11 +7,21 @@ namespace FactFlow.Web.Controllers;
 [Authorize]
 public sealed class WorkspaceController(IWorkspaceTabService workspaceTabs) : Controller
 {
+    [HttpGet]
+    public IActionResult Cancel(string tabId)
+    {
+        return RedirectToNext(workspaceTabs.Close(tabId));
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Close(string tabId)
     {
-        var next = workspaceTabs.Close(tabId);
+        return RedirectToNext(workspaceTabs.Close(tabId));
+    }
+
+    private IActionResult RedirectToNext(WorkspaceTab next)
+    {
         return RedirectToAction(
             next.Action,
             next.Controller,

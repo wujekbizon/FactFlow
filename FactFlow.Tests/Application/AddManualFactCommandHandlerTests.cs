@@ -27,6 +27,7 @@ public sealed class AddManualFactCommandHandlerTests
         public List<CatFact> Facts { get; } = [];
         public string FilePath => "facts.txt";
         public Task<int> AppendAsync(CatFact fact, CancellationToken cancellationToken = default) { Facts.Add(fact); return Task.FromResult(Facts.Count); }
+        public Task ReplaceAllAsync(IReadOnlyList<CatFact> facts, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task<IReadOnlyList<CatFact>> ReadAllAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<CatFact>>(Facts);
         public Task<string?> ReadRawContentAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
     }

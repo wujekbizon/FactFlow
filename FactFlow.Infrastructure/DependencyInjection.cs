@@ -20,9 +20,15 @@ public static class DependencyInjection
             throw new InvalidOperationException("Connection string 'FactFlow' is required.");
         }
 
-        services.AddDbContext<FactFlowDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddDbContext<FactFlowDbContext>(options =>
+            options.UseSqlServer(connectionString, sqlOptions =>
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null)));
         services.AddScoped<IFactRepository, FactRepository>();
-        services.AddScoped<JournalProjectionSynchronizer>();
+        services.AddScoped<FactFileSynchronizer>();
+        services.AddScoped<IFactFileSynchronizer>(services => services.GetRequiredService<FactFileSynchronizer>());
 
         services
             .AddOptions<CatFactApiOptions>()

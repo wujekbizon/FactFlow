@@ -13,7 +13,8 @@ public static class DatabaseInitializer
         var dbContext = scope.ServiceProvider.GetRequiredService<FactFlowDbContext>();
         await dbContext.Database.MigrateAsync(cancellationToken);
 
-        var synchronizer = scope.ServiceProvider.GetRequiredService<JournalProjectionSynchronizer>();
-        await synchronizer.SynchronizeAsync(cancellationToken);
+        var synchronizer = scope.ServiceProvider.GetRequiredService<FactFileSynchronizer>();
+        await synchronizer.BootstrapDatabaseFromFileIfEmptyAsync(cancellationToken);
+        await synchronizer.SynchronizeFromDatabaseAsync(cancellationToken);
     }
 }

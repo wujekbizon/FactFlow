@@ -30,6 +30,14 @@ public sealed class FactRepository(FactFlowDbContext dbContext) : IFactRepositor
             .ToListAsync(cancellationToken))
         .ToHashSet();
 
+    public async Task<int> GetNextJournalSequenceAsync(CancellationToken cancellationToken = default)
+    {
+        var maximum = await dbContext.Facts
+            .Select(fact => (int?)fact.JournalSequence)
+            .MaxAsync(cancellationToken) ?? 0;
+        return maximum + 1;
+    }
+
     public async Task AddAsync(FactRecord fact, CancellationToken cancellationToken = default) =>
         await dbContext.Facts.AddAsync(fact, cancellationToken);
 

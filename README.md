@@ -26,15 +26,15 @@ Example output:
 
 - Fetch and save a random Cat Fact.
 - View the latest response and journal statistics.
-- Download the complete text journal.
+- Download the synchronized text file.
 - Add facts manually with server-side validation and calculated length.
 - Inspect technical history: declared/calculated length, integrity, duplicate detection, SHA-256 and raw JSON.
 - Use multiple persistent workspace tabs modelled after a desktop application.
 - Preserve unsaved manual-entry drafts while switching tabs.
 - Authenticate through an ASP.NET Core cookie.
 - Manage SQL-backed facts through create, read, update and soft-delete operations.
-- Preserve the TXT file as immutable intake evidence when SQL records are edited or deleted.
-- Recover missing SQL records automatically from the journal during development startup.
+- Keep the required TXT file synchronized with active SQL records.
+- Bootstrap an empty database once from an existing TXT file, then use SQL as the source of truth.
 - Check application availability at `/health`.
 
 ## Quick start
@@ -105,9 +105,9 @@ POST /Facts/Fetch
     -> SQL Server Facts table
 ```
 
-The dashboard and CRM list read from SQL Server. Technical history reads the immutable journal. Fetching, manual creation, editing and soft deletion use command handlers. The web layer does not implement HTTP, file or database persistence directly.
+The dashboard and CRM list read from SQL Server. Technical history reads the synchronized TXT projection. Fetching, manual creation, editing and soft deletion use command handlers. The web layer does not implement HTTP, file or database persistence directly.
 
-The journal is written before SQL. A startup synchronizer imports any journal sequence missing from the database. Soft-deleted records retain their journal sequence as a tombstone, preventing accidental re-import.
+SQL Server is the source of truth. Creates commit to SQL and append one TXT line. Updates and soft deletes commit to SQL and regenerate the TXT projection from active records. On first startup only, an empty database can be bootstrapped from an existing assignment file; afterward startup synchronization always flows from SQL to TXT.
 
 ## Solution structure
 
@@ -161,6 +161,21 @@ dotnet ef database update `
   --project .\FactFlow.Infrastructure\FactFlow.Infrastructure.csproj `
   --startup-project .\FactFlow.Web\FactFlow.Web.csproj
 ```
+
+## Production configuration boundary
+
+`appsettings.Production.json` intentionally contains no secrets and disables startup migrations. Configure these values in Azure App Service **Environment variables**:
+
+```text
+ConnectionStrings__FactFlow          Azure SQL connection string
+DemoAuth__Username                   temporary private-demo username
+DemoAuth__Password                   temporary private-demo password
+FactJournal__Path                    {HOME}/data/catfacts.txt
+DataProtection__Path                 {HOME}/data/keys
+Database__ApplyMigrationsOnStartup  false
+```
+
+The Azure SQL connection should be supplied as an App Service connection string named `FactFlow`; `GetConnectionString("FactFlow")` reads it without changing code. Apply EF migrations separately before opening the deployed app. Replace demo authentication with Microsoft Entra ID before public exposure.
 
 ## Configuration
 

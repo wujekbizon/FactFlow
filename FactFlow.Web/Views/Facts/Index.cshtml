@@ -40,7 +40,7 @@
                         <td class="row-actions">
                             <a asp-controller="Facts" asp-action="Edit" asp-route-id="@fact.Id">Edit</a>
                             <form asp-controller="Facts" asp-action="Delete" asp-route-id="@fact.Id" method="post"
-                                  onsubmit="return confirm('Remove fact #@fact.Id from active records? The TXT journal will remain unchanged.');">
+                                  onsubmit="return confirm('Remove fact #@fact.Id from active records and synchronize the TXT file?');">
                                 <button type="submit">Delete</button>
                             </form>
                         </td>
@@ -54,5 +54,5 @@
 
 <section class="form-note">
     <strong>Data policy</strong>
-    <span>Editing or deleting a CRM record never rewrites the immutable assignment journal.</span>
+    <span>SQL Server is canonical. Every create, edit and delete synchronizes the assignment TXT file.</span>
 </section>

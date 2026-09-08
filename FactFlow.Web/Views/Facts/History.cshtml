@@ -8,7 +8,7 @@
 <div class="page-title">
     <div>
         <h1>Response history</h1>
-        <p>Technical validation of every record stored in the text journal.</p>
+        <p>Technical validation of the TXT projection synchronized from SQL Server.</p>
     </div>
     <a class="secondary-button @(Model.TotalRecords == 0 ? "disabled" : null)"
        asp-controller="Facts" asp-action="DownloadJournal">Download TXT</a>
@@ -22,7 +22,7 @@
 </section>
 
 <section class="medical-card technical-history">
-    <header class="card-header"><h2>Journal diagnostics</h2></header>
+    <header class="card-header"><h2>TXT diagnostics</h2></header>
     <div class="journal-location"><span>File:</span><code>@Model.JournalPath</code></div>
 
     @if (Model.Records.Count == 0)

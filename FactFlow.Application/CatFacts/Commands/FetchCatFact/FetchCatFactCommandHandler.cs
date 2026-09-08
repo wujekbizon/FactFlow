@@ -23,10 +23,11 @@ public sealed class FetchCatFactCommandHandler(
             throw new InvalidDataException("The Cat Fact API returned an invalid response.");
         }
 
-        var sequence = await factJournal.AppendAsync(fact, cancellationToken);
+        var sequence = await factRepository.GetNextJournalSequenceAsync(cancellationToken);
         var record = FactRecord.Create(fact, FactSource.Api, sequence, DateTimeOffset.UtcNow);
         await factRepository.AddAsync(record, cancellationToken);
         await factRepository.SaveChangesAsync(cancellationToken);
+        await factJournal.AppendAsync(fact, cancellationToken);
         stopwatch.Stop();
 
         return new FetchCatFactResult(record.Id, fact, stopwatch.ElapsedMilliseconds, factJournal.FilePath);
