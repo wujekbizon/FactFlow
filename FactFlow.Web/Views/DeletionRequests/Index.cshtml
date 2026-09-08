@@ -67,18 +67,24 @@
                         <td>
                             @if (Model.IsSupervisor && request.Status == nameof(FactDeletionRequestStatus.Pending))
                             {
-                                <form asp-action="Approve" method="post" class="approval-form" onsubmit="return confirm('Approve deletion request #@request.Id?');">
-                                    <input name="RequestId" value="@request.Id" type="hidden" />
-                                    <input name="TabId" value="@WorkspaceTabs.ActiveTabId" type="hidden" />
-                                    <input name="Note" placeholder="Approval note (optional)" maxlength="1000" />
-                                    <button class="row-action-approve" type="submit">Approve</button>
-                                </form>
-                                <form asp-action="Reject" method="post" class="approval-form" onsubmit="return confirm('Reject deletion request #@request.Id?');">
-                                    <input name="RequestId" value="@request.Id" type="hidden" />
-                                    <input name="TabId" value="@WorkspaceTabs.ActiveTabId" type="hidden" />
-                                    <input name="Note" placeholder="Rejection reason (required)" maxlength="1000" required minlength="10" />
-                                    <button class="row-action-reject" type="submit">Reject</button>
-                                </form>
+                                <div class="approval-actions">
+                                    <button class="row-action-approve" type="button"
+                                            data-decision-trigger
+                                            data-decision="approve"
+                                            data-request-id="@request.Id"
+                                            data-fact="@request.FactContentSnapshot"
+                                            data-action-url="@Url.Action("Approve", "DeletionRequests")">
+                                        Approve
+                                    </button>
+                                    <button class="row-action-reject" type="button"
+                                            data-decision-trigger
+                                            data-decision="reject"
+                                            data-request-id="@request.Id"
+                                            data-fact="@request.FactContentSnapshot"
+                                            data-action-url="@Url.Action("Reject", "DeletionRequests")">
+                                        Reject
+                                    </button>
+                                </div>
                             }
                             else if (request.DecidedBy is not null)
                             {
@@ -99,3 +105,41 @@
         </div>
     }
 </section>
+
+@if (Model.IsSupervisor)
+{
+    <dialog class="decision-modal" data-decision-modal aria-labelledby="decision-modal-title">
+        <form asp-controller="DeletionRequests" asp-action="Approve" method="post" class="decision-modal-panel" data-decision-form>
+            <input name="RequestId" type="hidden" data-decision-request-id />
+            <input name="TabId" value="@WorkspaceTabs.ActiveTabId" type="hidden" />
+
+            <header class="decision-modal-header">
+                <div>
+                    <span class="decision-modal-eyebrow">Supervisor decision</span>
+                    <h2 id="decision-modal-title" data-decision-title>Confirm decision</h2>
+                </div>
+                <button type="button" class="decision-modal-close" data-decision-close aria-label="Close">×</button>
+            </header>
+
+            <div class="decision-modal-body">
+                <div class="decision-fact-preview">
+                    <small data-decision-request-label>Request</small>
+                    <p data-decision-fact></p>
+                </div>
+                <div class="form-field">
+                    <label for="decision-note" data-decision-note-label>Decision note</label>
+                    <textarea id="decision-note" name="Note" rows="5" maxlength="1000" data-decision-note></textarea>
+                    <div class="field-footer">
+                        <span data-decision-validation></span>
+                        <span><strong data-decision-character-count>0</strong> / 1000</span>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="decision-modal-footer">
+                <button type="button" class="secondary-button" data-decision-close>Cancel</button>
+                <button type="submit" class="decision-confirm-button" data-decision-confirm>Confirm</button>
+            </footer>
+        </form>
+    </dialog>
+}
