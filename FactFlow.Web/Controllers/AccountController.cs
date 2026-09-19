@@ -12,8 +12,15 @@ using Microsoft.Extensions.Options;
 
 namespace FactFlow.Web.Controllers;
 
-public sealed class AccountController(IOptions<DemoAuthOptions> authOptions) : Controller
+public sealed class AccountController : Controller
 {
+    private readonly IOptions<DemoAuthOptions> _authOptions;
+
+    public AccountController(IOptions<DemoAuthOptions> authOptions)
+    {
+        _authOptions = authOptions;
+    }
+
     [AllowAnonymous]
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
@@ -36,7 +43,7 @@ public sealed class AccountController(IOptions<DemoAuthOptions> authOptions) : C
             return View(model);
         }
 
-        var configured = authOptions.Value;
+        var configured = _authOptions.Value;
         var operatorConfigured = !string.IsNullOrWhiteSpace(configured.Username)
             && !string.IsNullOrEmpty(configured.Password);
         var supervisorConfigured = !string.IsNullOrWhiteSpace(configured.SupervisorUsername)

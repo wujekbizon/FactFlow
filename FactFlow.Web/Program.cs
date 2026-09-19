@@ -26,6 +26,7 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
+// Resolve the key storage path for ASP.NET Core Data Protection.
 var configuredKeyPath = builder.Configuration["DataProtection:Path"] ?? "App_Data/DataProtectionKeys";
 var homePath = Environment.GetEnvironmentVariable("HOME") ?? builder.Environment.ContentRootPath;
 var expandedKeyPath = Environment.ExpandEnvironmentVariables(configuredKeyPath)
@@ -52,7 +53,10 @@ builder.Services.AddTransient<IQueryHandler<GetFactHistoryQuery, FactHistorySnap
 builder.Services.AddTransient<IQueryHandler<GetFactJournalQuery, FactJournalFile?>, GetFactJournalQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetReviewQueueQuery, ReviewQueueSnapshot>, GetReviewQueueQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetDeletionRequestsQuery, DeletionRequestQueueSnapshot>, GetDeletionRequestsQueryHandler>();
+
+// Register infrastructure services, including the database layer.
 builder.Services.AddInfrastructure(builder.Configuration);
+
 builder.Services.Configure<DemoAuthOptions>(builder.Configuration.GetSection(DemoAuthOptions.SectionName));
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -65,6 +69,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
 builder.Services.AddScoped<IWorkspaceTabService, SessionWorkspaceTabService>();
+
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -112,6 +117,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+// Optionally apply pending EF Core migrations during startup.
 if (app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
 {
     await app.Services.InitializeDatabaseAsync();
