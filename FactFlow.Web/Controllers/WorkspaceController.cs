@@ -22,9 +22,22 @@ public sealed class WorkspaceController(IWorkspaceTabService workspaceTabs) : Co
 
     private IActionResult RedirectToNext(WorkspaceTab next)
     {
+        if (next.Id == "dashboard")
+        {
+            return RedirectToAction(next.Action, next.Controller);
+        }
+
+        if (next.Kind == "DeletionRequest")
+        {
+            return RedirectToAction(
+                next.Action,
+                next.Controller,
+                new { factId = next.EntityId, tabId = next.Id });
+        }
+
         return RedirectToAction(
             next.Action,
             next.Controller,
-            next.Id == "dashboard" ? null : new { id = next.EntityId, tabId = next.Id });
+            new { id = next.EntityId, tabId = next.Id });
     }
 }

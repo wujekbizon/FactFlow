@@ -84,8 +84,22 @@ public sealed class FactsController(
         var fact = await addManualFactCommand.Handle(new AddManualFactCommand(model.Fact), cancellationToken);
         TempData["SuccessMessage"] = $"Manual fact saved with calculated length {fact.Length}.";
         var next = workspaceTabs.Close(tab.Id);
+
+        if (next.Id == "dashboard")
+        {
+            return RedirectToAction(next.Action, next.Controller);
+        }
+
+        if (next.Kind == "DeletionRequest")
+        {
+            return RedirectToAction(
+                next.Action,
+                next.Controller,
+                new { factId = next.EntityId, tabId = next.Id });
+        }
+
         return RedirectToAction(next.Action, next.Controller,
-            next.Id == "dashboard" ? null : new { id = next.EntityId, tabId = next.Id });
+            new { id = next.EntityId, tabId = next.Id });
     }
 
     [HttpGet]

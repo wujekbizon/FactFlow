@@ -69,7 +69,8 @@
                             <a class="tab-label"
                                asp-controller="@workspace.Controller"
                                asp-action="@workspace.Action"
-                               asp-route-id="@workspace.EntityId"
+                               asp-route-id="@(workspace.Kind == "DeletionRequest" ? null : workspace.EntityId)"
+                               asp-route-factId="@(workspace.Kind == "DeletionRequest" ? workspace.EntityId : null)"
                                asp-route-tabId="@(workspace.Id == "dashboard" ? null : workspace.Id)">
                                 <span></span>@workspace.Title
                             </a>
