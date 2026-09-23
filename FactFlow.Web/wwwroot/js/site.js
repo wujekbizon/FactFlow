@@ -58,7 +58,6 @@ if (decisionModal) {
 
   const updateDecisionCount = () => {
     characterCount.textContent = note.value.length.toString();
-    note.setCustomValidity("");
     validation.textContent = "";
   };
 
@@ -77,8 +76,6 @@ if (decisionModal) {
       note.placeholder = isReject
         ? "Explain why this request is rejected."
         : "Add context for the audit trail if needed.";
-      note.required = isReject;
-      note.minLength = isReject ? 10 : 0;
       note.value = "";
       confirmButton.textContent = isReject ? "Reject request" : "Approve request";
       confirmButton.classList.toggle("reject", isReject);
@@ -106,12 +103,15 @@ if (decisionModal) {
 
   decisionForm.addEventListener("submit", (event) => {
     note.value = note.value.trim();
+    if (note.value.length > 1000) {
+      event.preventDefault();
+      validation.textContent = "Decision note cannot exceed 1000 characters.";
+      return;
+    }
+
     if (decision === "reject" && note.value.length < 10) {
       event.preventDefault();
-      const message = "Rejection reason must contain at least 10 characters.";
-      validation.textContent = message;
-      note.setCustomValidity(message);
-      note.reportValidity();
+      validation.textContent = "Rejection reason must contain at least 10 characters.";
       return;
     }
 

@@ -109,7 +109,7 @@
 @if (Model.IsSupervisor)
 {
     <dialog class="decision-modal" data-decision-modal aria-labelledby="decision-modal-title">
-        <form asp-controller="DeletionRequests" asp-action="Approve" method="post" class="decision-modal-panel" data-decision-form>
+        <form asp-controller="DeletionRequests" asp-action="Approve" method="post" class="decision-modal-panel" data-decision-form novalidate>
             <input name="RequestId" type="hidden" data-decision-request-id />
             <input name="TabId" value="@WorkspaceTabs.ActiveTabId" type="hidden" />
 
@@ -128,7 +128,7 @@
                 </div>
                 <div class="form-field">
                     <label for="decision-note" data-decision-note-label>Decision note</label>
-                    <textarea id="decision-note" name="Note" rows="5" maxlength="1000" data-decision-note></textarea>
+                    <textarea id="decision-note" name="Note" rows="5" data-decision-note></textarea>
                     <div class="field-footer">
                         <span data-decision-validation></span>
                         <span><strong data-decision-character-count>0</strong> / 1000</span>
